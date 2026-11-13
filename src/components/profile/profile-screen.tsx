@@ -34,7 +34,8 @@ import { YoutubePlayer } from "@/components/media/youtube-player";
 import { PaymentCheck } from "@/components/orders/payment-check";
 import { CoverPicker } from "@/components/profile/cover-picker";
 import { DefaultCoverArt } from "@/components/profile/default-cover-art";
-import { UserAvatar } from "@/components/profile/user-avatar";
+import { SelfieVerify } from "@/components/profile/selfie-verify";
+import { UserAvatar, VerifiedMark } from "@/components/profile/user-avatar";
 import { Button } from "@/components/ui/button";
 import { pick, type Role } from "@/data/catalog";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -66,7 +67,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
   const [addAudioUrl, setAddAudioUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [selfieOpen, setSelfieOpen] = useState(false);
   const [repositioningCover, setRepositioningCover] = useState(false);
   const [coverMenu, setCoverMenu] = useState<"closed" | "source" | "templates">("closed");
   const [draftCoverPosY, setDraftCoverPosY] = useState<number>(50);
@@ -173,9 +174,14 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
               name={name}
               className="size-24"
               textClassName="text-2xl"
+              verified={profile.selfieVerified}
+              verifiedLabel={t("selfieVerified")}
             />
           </div>
-          <h1 className="mt-4 font-display text-2xl font-bold">{name}</h1>
+          <h1 className="mt-4 flex items-center justify-center gap-2 font-display text-2xl font-bold">
+            {name}
+            {profile.selfieVerified ? <VerifiedMark label={t("selfieVerified")} className="size-6" /> : null}
+          </h1>
           <p className="mt-1 text-xs text-muted-foreground">
             {role}
             {genderLabel ? ` · ${genderLabel}` : ""} · {pick(locale, profile.cityBn, profile.city)}
@@ -285,21 +291,6 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
     }
   }
 
-  async function handleAvatarUpload(file: File | undefined) {
-    if (!file || !isOwner) return;
-    setUploadingAvatar(true);
-    try {
-      const up = await uploadAudioFile(file);
-      await mutateCommunity({
-        action: "updateProfilePhotos",
-        userId: profile!.id,
-        avatarUrl: up.url,
-      });
-    } finally {
-      setUploadingAvatar(false);
-    }
-  }
-
   async function handleAddShowcase(event: FormEvent) {
     event.preventDefault();
     if (!addTitle.trim()) {
@@ -342,6 +333,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
 
   return (
     <div className="mx-auto grid max-w-6xl items-start gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_320px] sm:px-5">
+      <SelfieVerify open={selfieOpen && isOwner} onClose={() => setSelfieOpen(false)} />
       <div className="min-w-0">
         {/* Cover Photo Banner + Profile Photo Header */}
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-xl">
@@ -480,24 +472,20 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                     name={name}
                     className="size-24 sm:size-28"
                     textClassName="text-3xl"
+                    verified={profile.selfieVerified}
+                    verifiedLabel={t("selfieVerified")}
                   />
 
                   {isOwner ? (
-                    <label
+                    <button
+                      type="button"
                       title={t("updateAvatar")}
+                      onClick={() => setSelfieOpen(true)}
                       className="absolute right-0 bottom-0 grid size-9 cursor-pointer place-items-center rounded-full border border-border bg-white text-foreground shadow-md hover:border-primary"
                     >
                       <Camera className="size-4 text-primary" />
-                      <span className="sr-only">
-                        {uploadingAvatar ? t("uploading") : t("updateAvatar")}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="sr-only"
-                        onChange={(e) => void handleAvatarUpload(e.target.files?.[0])}
-                      />
-                    </label>
+                      <span className="sr-only">{t("updateAvatar")}</span>
+                    </button>
                   ) : null}
                 </div>
 
@@ -506,7 +494,10 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                     {role}
                     {genderLabel ? ` · ${genderLabel}` : ""} · {pick(locale, profile.cityBn, profile.city)}
                   </p>
-                  <h1 className="mt-0.5 font-display text-4xl">{name}</h1>
+                  <h1 className="mt-0.5 flex items-center gap-2 font-display text-4xl">
+                    {name}
+                    {profile.selfieVerified ? <VerifiedMark label={t("selfieVerified")} className="size-8" /> : null}
+                  </h1>
                   {isOwner ? (
                     <div className="mt-3">
                       <p className="text-xs font-semibold text-[#222325]">{home("genderPrompt")}</p>
@@ -533,6 +524,20 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                           );
                         })}
                       </div>
+                    </div>
+                  ) : null}
+                  {isOwner ? (
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={() => setSelfieOpen(true)}
+                        className="h-9 rounded-full border border-[#1d9bf0] bg-white px-4 text-xs font-semibold text-[#1d9bf0] hover:bg-[#1d9bf0]/10"
+                      >
+                        {profile.selfieVerified ? t("verifyProfileRetake") : t("verifyProfile")}
+                      </button>
+                      {profile.selfieVerified ? null : (
+                        <p className="mt-1.5 max-w-md text-xs text-muted-foreground">{t("verifyProfileHint")}</p>
+                      )}
                     </div>
                   ) : null}
                 </div>

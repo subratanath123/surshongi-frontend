@@ -137,6 +137,7 @@ export function SearchResultsList({
                   <UserAvatar
                     src={user.avatarUrl}
                     name={name}
+                    verified={user.selfieVerified}
                     className="absolute bottom-2 left-2 size-10 ring-2 ring-black"
                     textClassName="text-sm"
                   />

@@ -101,6 +101,8 @@ export type DbUser = Musician & {
   bkashNumber?: string;
   isPrivate?: boolean;
   profileCompleted: boolean;
+  /** Skills and genres this person wants at the top of the feed. */
+  feedPreferences?: string[];
 };
 
 export type CommunityDatabase = {

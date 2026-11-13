@@ -86,10 +86,10 @@ const categoryTiles: CategoryTile[] = [
       useRole: skill.useRole,
       group: "hire" as const,
     })),
-  { id: "producers", image: "/covers/cover-studio.jpg", position: "left center", roles: ["producer"], terms: [], useRole: true, group: "studio" },
+  { id: "producers", image: "/covers/cover-producer.jpg", position: "center", roles: ["producer"], terms: [], useRole: true, group: "studio" },
   {
     id: "femaleSingers",
-    image: "/covers/cover-mic.jpg",
+    image: "/covers/cover-female-singer.jpg",
     position: "center",
     roles: ["vocalist"],
     terms: hireSkills.find((skill) => skill.id === "vocalistHire")?.terms ?? [],
@@ -99,8 +99,8 @@ const categoryTiles: CategoryTile[] = [
   },
   {
     id: "maleSingers",
-    image: "/uploads/img-mw5anh6m-216i8.jpg",
-    position: "center top",
+    image: "/covers/cover-male-singer.jpg",
+    position: "center",
     roles: ["vocalist"],
     terms: hireSkills.find((skill) => skill.id === "vocalistHire")?.terms ?? [],
     useRole: true,
@@ -109,17 +109,17 @@ const categoryTiles: CategoryTile[] = [
   },
   {
     id: "mixing",
-    image: "/covers/cover-studio.jpg",
-    position: "right center",
+    image: "/covers/cover-mixing.jpg",
+    position: "center",
     roles: ["producer"],
     terms: hireSkills.find((skill) => skill.id === "mixing")?.terms ?? [],
     useRole: true,
     group: "studio",
   },
-  { id: "songwriters", image: "/covers/cover-guitar.jpg", position: "left center", roles: ["lyricist"], terms: [], useRole: true, group: "studio" },
+  { id: "songwriters", image: "/covers/cover-songwriter.jpg", position: "center", roles: ["lyricist"], terms: [], useRole: true, group: "studio" },
   {
     id: "beatmakers",
-    image: "/covers/cover-studio.jpg",
+    image: "/covers/cover-beats.jpg",
     position: "center",
     roles: ["producer"],
     terms: hireSkills.find((skill) => skill.id === "beatmakers")?.terms ?? [],
@@ -128,8 +128,8 @@ const categoryTiles: CategoryTile[] = [
   },
   {
     id: "mastering",
-    image: "/covers/cover-studio.jpg",
-    position: "center bottom",
+    image: "/covers/cover-mastering.jpg",
+    position: "center",
     roles: ["producer"],
     terms: hireSkills.find((skill) => skill.id === "mastering")?.terms ?? [],
     useRole: true,
@@ -137,7 +137,7 @@ const categoryTiles: CategoryTile[] = [
   },
   {
     id: "session",
-    image: "/uploads/img-mw5annwy-hb37p.jpg",
+    image: "/covers/cover-session.jpg",
     position: "center",
     roles: ["guitarist", "percussion", "flute"],
     terms: [],
@@ -262,6 +262,13 @@ function CategoryBand({
 }
 
 const roles: Role[] = ["vocalist", "guitarist", "percussion", "flute", "producer", "lyricist"];
+const feedPreferenceIds = [...roles, "folk", "rabindra", "nazrul", "pop"] as const;
+
+type FeedCard = {
+  post: CommunityPost;
+  author: DbUser;
+  preferred: boolean;
+};
 const categories: PostCategory[] = ["offering", "collab", "work"];
 
 function formatPostTime(iso: string, locale: string, hydrated: boolean) {
@@ -309,6 +316,14 @@ export function HomeFeed() {
   const [postAudio, setPostAudio] = useState("");
   const [uploading, setUploading] = useState(false);
   const [composerError, setComposerError] = useState("");
+  const [feedCards, setFeedCards] = useState<FeedCard[]>([]);
+  const [feedLoading, setFeedLoading] = useState(false);
+  const [feedHasMore, setFeedHasMore] = useState(false);
+  const [feedReload, setFeedReload] = useState(0);
+  const feedCursor = useRef<string | null>(null);
+  const feedLoadingRef = useRef(false);
+  const feedSeq = useRef(0);
+  const feedEndRef = useRef<HTMLDivElement>(null);
 
   const activeUserId = currentUser?.id ?? null;
   const myFollows = useMemo(
@@ -324,37 +339,36 @@ export function HomeFeed() {
     return map;
   }, [db.users]);
 
-  const filteredPosts = useMemo(() => {
-    return db.posts.filter((post) => {
-      const author = userMap.get(post.musicianId);
-      if (filter === "following" && !myFollows.includes(post.musicianId)) return false;
-      if (filter === "vocal" && post.roleTag !== "vocalist" && !author?.roles.includes("vocalist"))
-        return false;
-      if (filter === "guitar" && post.roleTag !== "guitarist" && !author?.roles.includes("guitarist"))
-        return false;
-      if (
-        filter === "percussion" &&
-        post.roleTag !== "percussion" &&
-        !author?.roles.includes("percussion")
-      )
-        return false;
-      if (
-        filter === "folk" &&
-        !author?.genreTerms.some((term) => term === "folk" || term === "লোক")
-      ) {
-        return false;
+  const preferenceKey = (currentUser?.feedPreferences ?? []).join(",");
+
+  async function loadFeed(reset: boolean) {
+    if (feedLoadingRef.current) return;
+    if (!reset && !feedCursor.current) return;
+    const seq = reset ? ++feedSeq.current : feedSeq.current;
+    feedLoadingRef.current = true;
+    setFeedLoading(true);
+    try {
+      const params = new URLSearchParams({ filter, limit: "8" });
+      if (!reset && feedCursor.current) params.set("cursor", feedCursor.current);
+      const res = await fetch(apiUrl(`/api/feed?${params}`), { cache: "no-store" });
+      const data = (await res.json()) as { posts?: FeedCard[]; next?: string };
+      if (seq !== feedSeq.current || !res.ok) return;
+      const page = Array.isArray(data.posts) ? data.posts : [];
+      setFeedCards((current) => (reset ? page : [...current, ...page]));
+      feedCursor.current = typeof data.next === "string" ? data.next : null;
+      setFeedHasMore(Boolean(data.next));
+    } catch {
+      if (seq !== feedSeq.current) return;
+      if (reset) setFeedCards([]);
+      feedCursor.current = null;
+      setFeedHasMore(false);
+    } finally {
+      if (seq === feedSeq.current) {
+        feedLoadingRef.current = false;
+        setFeedLoading(false);
       }
-      if (service) {
-        const tile = categoryTiles.find((item) => item.id === service);
-        if (!tile) return false;
-        const played = post.roleTag ? [...(author?.roles ?? []), post.roleTag] : (author?.roles ?? []);
-        const instruments = [...(author?.instruments ?? []), ...(author?.instrumentsBn ?? [])];
-        const extra = `${post.title} ${post.titleBn} ${post.text} ${post.textBn}`;
-        if (!tileMatches(tile, played, instruments, extra, author?.gender)) return false;
-      }
-      return true;
-    });
-  }, [db.posts, filter, myFollows, service, userMap]);
+    }
+  }
 
   const visibleMusicians = useMemo(() => {
     return db.users.filter((person) => {
@@ -379,6 +393,26 @@ export function HomeFeed() {
   }, [activeUserId, db.users, filter, myFollows, service]);
 
   const searchActive = searchingVector || vectorHits !== null;
+
+  useEffect(() => {
+    if (filter === "musicians" || searchActive) return;
+    feedCursor.current = null;
+    feedLoadingRef.current = false;
+    void loadFeed(true);
+    // Reload when the signed-in person's preferences or the feed filter change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, activeUserId, preferenceKey, searchActive, feedReload]);
+
+  useEffect(() => {
+    const node = feedEndRef.current;
+    if (!node || !feedHasMore || filter === "musicians" || searchActive) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) void loadFeed(false);
+    }, { rootMargin: "480px" });
+    observer.observe(node);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feedHasMore, filter, searchActive, feedCards.length]);
   const searchRef = useRef<HTMLFormElement>(null);
   const [askIn, setAskIn] = useState(false);
 
@@ -500,6 +534,7 @@ export function HomeFeed() {
     setPostYoutube("");
     setPostAudio("");
     setComposerOpen(false);
+    setFeedReload((value) => value + 1);
   }
 
   return (
@@ -725,6 +760,50 @@ export function HomeFeed() {
                   </h2>
                 </div>
 
+                <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
+                  <p className="text-xs font-semibold text-[#222325]">{t("feedPrefsLabel")}</p>
+                  {currentUser ? (
+                    <>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {feedPreferenceIds.map((id) => {
+                          const selected = (currentUser.feedPreferences ?? []).includes(id);
+                          const label = id in { folk: 1, rabindra: 1, nazrul: 1, pop: 1 }
+                            ? t(`prefs.${id as "folk" | "rabindra" | "nazrul" | "pop"}`)
+                            : t(`roles.${id as Role}`);
+                          return (
+                            <button
+                              key={id}
+                              type="button"
+                              aria-pressed={selected}
+                              onClick={() => {
+                                const current = currentUser.feedPreferences ?? [];
+                                const next = selected
+                                  ? current.filter((item) => item !== id)
+                                  : [...current, id];
+                                void mutateCommunity({ action: "updateFeedPreferences", preferences: next });
+                              }}
+                              className={
+                                selected
+                                  ? "h-8 rounded-full bg-[#1dbf73] px-3 text-xs font-semibold text-white"
+                                  : "h-8 rounded-full border border-[#e4e5e7] bg-white px-3 text-xs font-semibold text-[#222325] hover:border-[#1dbf73]"
+                              }
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="mt-2 text-xs text-muted-foreground">{t("feedPrefsHint")}</p>
+                    </>
+                  ) : (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      <Link href="/register" className="font-semibold text-primary underline">
+                        {t("feedPrefsSignIn")}
+                      </Link>
+                    </p>
+                  )}
+                </div>
+
                 <div ref={composerRef} className="scroll-mt-24 rounded-xl border border-border bg-white p-4 shadow-sm">
                   {composerOpen ? (
                     <form onSubmit={(e) => void handleCreatePost(e)}>
@@ -732,6 +811,7 @@ export function HomeFeed() {
                         <UserAvatar
                           src={currentUser?.avatarUrl}
                           name={currentUser?.name ?? "S"}
+                          verified={currentUser?.selfieVerified}
                           className="size-10 shrink-0"
                           textClassName="text-sm"
                         />
@@ -908,6 +988,7 @@ export function HomeFeed() {
                       <UserAvatar
                         src={currentUser?.avatarUrl}
                         name={currentUser?.name ?? "S"}
+                        verified={currentUser?.selfieVerified}
                         className="size-10 shrink-0"
                         textClassName="text-sm"
                       />
@@ -920,15 +1001,15 @@ export function HomeFeed() {
                 </div>
 
                 {/* Feed Posts List */}
-                {filteredPosts.length === 0 ? (
+                {feedCards.length === 0 && !feedLoading ? (
                   <p className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
                     {filter === "following" ? t("emptyFollowing") : t("empty")}
                   </p>
                 ) : (
                   <ul className="space-y-4">
-                    {filteredPosts.map((post) => {
-                      const author = userMap.get(post.musicianId);
-                      if (!author) return null;
+                    {feedCards.map((card) => {
+                      const post = db.posts.find((item) => item.id === card.post.id) ?? card.post;
+                      const author = userMap.get(card.author.id) ?? card.author;
                       const loved = activeUserId ? post.lovedBy.includes(activeUserId) : false;
                       const following = myFollows.includes(author.id);
                       return (
@@ -948,6 +1029,9 @@ export function HomeFeed() {
                     })}
                   </ul>
                 )}
+                <div ref={feedEndRef} className="h-8 text-center text-xs text-muted-foreground">
+                  {feedLoading ? t("feedLoading") : ""}
+                </div>
               </section>
 
               {/* Right Sidebar: Suggested Musicians Directory */}
@@ -1093,6 +1177,7 @@ function PostCard({
             <UserAvatar
               src={author.avatarUrl}
               name={authorName}
+              verified={author.selfieVerified}
               className="size-11 ring-1 ring-white/10"
               textClassName="text-sm"
             />
@@ -1453,6 +1538,7 @@ function SidebarMusicianRow({
         <UserAvatar
           src={person.avatarUrl}
           name={name}
+          verified={person.selfieVerified}
           className="size-10 shrink-0"
           textClassName="text-sm"
         />
@@ -1564,6 +1650,7 @@ function PersonCard({
           <UserAvatar
             src={person.avatarUrl}
             name={name}
+            verified={person.selfieVerified}
             className="relative z-10 -mt-8 size-14 border-4 border-white"
             textClassName="text-lg"
           />

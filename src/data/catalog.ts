@@ -48,6 +48,8 @@ export type Musician = {
   followers: number;
   rating: number;
   ratingCount: number;
+  /** True only after a camera selfie was saved as the profile photo. */
+  selfieVerified?: boolean;
 };
 
 export function pick(locale: string, bangla: string, english: string) {
