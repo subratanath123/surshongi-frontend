@@ -9,7 +9,7 @@ import { pick, type Role } from "@/data/catalog";
 import { Link, useRouter } from "@/i18n/navigation";
 import { openChatWindow, useCurrentUser } from "@/lib/community-store";
 import { formatNumber, formatRating } from "@/lib/format";
-import type { MatchSource, SemanticMusicianHit } from "@/lib/vector-search";
+import type { MatchSource, SemanticMusicianHit } from "@/lib/search-types";
 
 const sourceLabels: Record<MatchSource, { en: string; bn: string }> = {
   showcase: { en: "From showcase", bn: "শোকেস থেকে" },

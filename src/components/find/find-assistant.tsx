@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { SearchResultsList } from "@/components/search/search-results-list";
 import { Button } from "@/components/ui/button";
 import { apiUrl } from "@/lib/api-base";
-import type { SemanticMusicianHit } from "@/lib/vector-search";
+import type { SemanticMusicianHit } from "@/lib/search-types";
 
 export function FindAssistant() {
   const t = useTranslations("Find");

@@ -41,7 +41,7 @@ import {
 } from "@/lib/community-store";
 import type { DbUser } from "@/lib/db-types";
 import { apiUrl } from "@/lib/api-base";
-import type { SemanticMusicianHit } from "@/lib/vector-search";
+import type { SemanticMusicianHit } from "@/lib/search-types";
 import { audioBufferToWav } from "@/lib/wav";
 import {
   AudioEngine,

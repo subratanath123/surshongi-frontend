@@ -28,8 +28,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/messages ./messages
 COPY --from=builder --chown=nextjs:nodejs /app/next.config.ts ./next.config.ts
 
-RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
-
 USER nextjs
 EXPOSE 3000
 CMD ["npm", "run", "start"]

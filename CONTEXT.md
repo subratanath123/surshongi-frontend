@@ -39,11 +39,10 @@ SurShongi (সুরসঙ্গী) is a community and collaboration platform f
   - Clicking **Message** on another musician's post, card, or profile opens a large (`620px–680px` wide, expandable to `820px–920px`) floating Facebook Messenger-style chat window docked at the bottom-right of the viewport.
   - **Instant Optimistic Send + Live 1.5s Polling**: Sending a message immediately renders the bubble in `0ms` optimistically before the server round-trip finishes, and `src/lib/community-store.ts` polls `/community-data` every `1.5s` (plus on window focus/visibility) so incoming messages appear automatically without reloading the page, auto-popping open the sender's chat window and scrolling to the newest message.
 
-## 2. Containerized PostgreSQL & Docker Compose Architecture
-- **`docker-compose.yml`**:
-  - `postgres` (`postgres:16-alpine`, container `surshongi-postgres`, port `5432:5432`, volume `pgdata`, schema initialized via `docker/init.sql`).
-  - `app` (`surshongi-app`, multi-stage Node 22 Alpine build from `Dockerfile`, port `3000:3000`, connected via `DATABASE_URL=postgresql://surshongi:surshongi_pass@postgres:5432/surshongi_db`).
-- **PostgreSQL Tables (`docker/init.sql` & `src/lib/db-server.ts`)**:
+## 2. Website and API
+The website in this repository is the Next.js UI. It proxies `/community-data`, `/community-search`, `/community-upload`, `/auth/*`, `/api/*`, and `/uploads/*` to `BACKEND_URL` (the Spring Boot API in `surshongi-backend`). PostgreSQL, Google sign-in, sessions, orders, chat, search, uploads, and mail live in that API.
+
+- **PostgreSQL tables (owned by the API)**:
   - `users`: Musician accounts (`@gmail.com` enforced) & profile details.
   - `showcase_items`: YouTube performance links & uploaded audio tracks per musician.
   - `community_posts`: Community posts, offerings, and collaboration requests + love counts.
@@ -53,22 +52,22 @@ SurShongi (সুরসঙ্গী) is a community and collaboration platform f
   - `service_orders`: Fiverr-style collaboration orders (`id`, `buyer_id`, `musician_id`, `title`, `description`, `price_bdt`, `delivery_days`, `status`: `'active' | 'delivered' | 'completed'`, `created_at`, `delivered_at`, `completed_at`).
   - `order_reviews`: Verified client reviews (`id`, `order_id`, `buyer_id`, `musician_id`, `rating` 1–5, `comment`, `order_title`, `price_bdt`, `created_at`) displayed on the musician's profile (`/u/[id]`).
   - `user_vector_index`: PostgreSQL `pgvector` (`vector(128)`) table with HNSW cosine index (`idx_user_vector_hnsw`) + `pg_trgm` trigram similarity. Automatically indexes each musician's name, city/address, roles/skills, instruments, genres, bio, showcase titles, and posts whenever a user registers, updates their profile, or adds media/posts.
-- **Fiverr-Style Order & Review Trust Flow + Automated Gmail Alerts (`src/lib/mailer.ts`)**:
+- **Order, review, and Gmail alerts (API)**:
   - **Place Order**: Inside the floating chat window (`FacebookChatDock`) or on a musician's profile sidebar (`ProfileScreen`), a user can click **Place Order (`অর্ডার দাও`)** with a title, BDT price, delivery days, and requirements.
   - **Strict Buyer-Only Completion & Review**: Only the buyer who placed the order (`buyer_id === activeUserId`) can mark the order as **Completed** (`completeOrderAndReviewInPg`) and post a 1–5 star review with a comment. The review is saved in `order_reviews`, updates the musician's aggregate rating, and appears under **Verified Order Reviews (`কাজের রিভিউ ও রেটিং`)** on the musician's profile.
   - **Automated Gmail Notifications (`smtp.gmail.com` via `nodemailer`)**:
     1. **Order Placed**: Emails the musician's Gmail immediately when an order is placed.
     2. **Order Completed & Reviewed**: Emails both the musician and the buyer when the buyer marks the order completed and leaves a review.
     3. **Unseen Message Over 1 Hour (`checkAndNotifyUnseenMessagesInPg`)**: Automatically checks `chat_messages` where `read_at IS NULL AND email_notified_at IS NULL AND created_at <= NOW() - INTERVAL '1 hour'`, sends an email alert to the recipient's Gmail, and marks `email_notified_at = NOW()`. Opening the chat window automatically marks incoming messages as seen (`markMessagesSeen`).
-- **Semantic Vector Search (`/api/search` & `/community-search`)**:
-  - Clicking **Ask (`জিজ্ঞেস`)** on the Homefeed or searching on `/find` embeds the query into the 128-D bilingual (Bangla + English) vector space (`src/lib/vector-search.ts`) and queries `user_vector_index` in PostgreSQL using `1 - (embedding <=> $1::vector)` cosine similarity combined with `pg_trgm` `word_similarity` and structured reason extraction (`Semantic Vector Match`, `Name Match`, `Location / Address`, `Skill / Instrument`, `Genre Match`, `Showcase / Work`, `Within Budget`).
+- **Search (`/community-search`)**:
+  - Clicking **Ask (`জিজ্ঞেস`)** on the Homefeed or searching on `/find` sends the query to the API. The API matches name, city, skills, genres, bio, showcase, and posts, and returns the same hit shape the UI renders.
   - Relevance: query tokens drop stopwords and expand through concept clusters (e.g. "singer" ↔ "vocalist", "গিটার" ↔ "guitar"), skipping generic words like "song"/"rhythm". A musician is returned only if a token matches their profile (coverage > 0) or the vector/trigram similarity is strong; score = coverage·0.7 + vector·0.2 + trigram·0.1. Tokenizers keep Unicode marks (`\p{M}`) so Bangla vowel signs survive.
   - Each hit carries `matchedText` (the exact showcase title, post, or bio sentence containing the matched words), `matchedSource`, `matchedTerms` (highlighted in UI), `showcaseCount`, and `thumbnailYoutubeId`.
   - UI: `src/components/search/search-results-list.tsx` renders ONE list (thumbnail = first YouTube showcase, else cover photo; avatar overlay; role · city · rating · price; quoted matched content). Home feed hides feed/filters/directory while a search is active; `/find` shows only the latest query's results.
-- **Key Files**:
-  - `src/lib/db-server.ts`: `pg.Pool` connection pool & SQL query helpers (`readDatabase`, `upsertUserInPg`, `insertShowcaseItemInPg`, `insertPostInPg`, `toggleLoveInPg`, `toggleFollowInPg`, `rateMusicianInPg`, `insertMessageInPg`).
-  - `src/app/api/community/route.ts`: Next.js API Route Handler executing async PostgreSQL queries.
-  - `src/app/api/upload/route.ts`: Multipart audio upload saving to `public/uploads/`.
+- **Key files**:
+  - `src/lib/community-store.ts`: browser store. It calls `/community-data`, which Next proxies to the API.
+  - `src/lib/search-types.ts`: search hit shape used by the home feed, find page, and studio.
+  - `next.config.ts`: rewrite rules that send API paths to `BACKEND_URL`.
 
 ## 3. Implementation Status
 - [x] Phase 0: Next.js 16 App Router, Bangla/English `next-intl`, SoundCloud-inspired dark studio theme.

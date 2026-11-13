@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { cacheLife } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { ProfileScreen } from "@/components/profile/profile-screen";
-import { readDatabase } from "@/lib/db-server";
 
 const PLACEHOLDER_ID = "_";
 
@@ -16,8 +15,11 @@ async function getProfileName(id: string) {
   cacheLife("minutes");
   if (id === PLACEHOLDER_ID) return null;
   try {
-    const db = await readDatabase();
-    return db.users.find((u) => u.id === id)?.name ?? null;
+    const backend = (process.env.BACKEND_URL ?? "http://localhost:8080").replace(/\/$/, "");
+    const res = await fetch(`${backend}/api/users/${encodeURIComponent(id)}/public`);
+    if (!res.ok) return null;
+    const data = (await res.json()) as { name?: string };
+    return data.name ?? null;
   } catch {
     return null;
   }

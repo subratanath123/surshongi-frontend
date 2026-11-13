@@ -37,7 +37,7 @@ import type { CommunityPost, DbUser, PostCategory } from "@/lib/db-types";
 import { formatCount, formatNumber, formatRating } from "@/lib/format";
 import { apiUrl } from "@/lib/api-base";
 import { hireSkills } from "@/lib/hire-skills";
-import type { SemanticMusicianHit } from "@/lib/vector-search";
+import type { SemanticMusicianHit } from "@/lib/search-types";
 import { youtubeIdFromUrl } from "@/lib/youtube";
 
 const filters = ["all", "following", "musicians", "vocal", "guitar", "percussion", "folk"] as const;

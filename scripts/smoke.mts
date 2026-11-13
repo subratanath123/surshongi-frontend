@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import { Pool } from "pg";
-import { upsertUserInPg } from "../src/lib/db-server";
 import type {
   ChatMessage,
   CommunityDatabase,
@@ -22,7 +23,7 @@ type Json = {
 };
 
 // End-to-end API check against a running server: `npm run smoke` (uses two throwaway users, deleted afterwards).
-const BASE = process.env.SMOKE_BASE_URL ?? "http://localhost:3000";
+const BASE = process.env.SMOKE_BASE_URL ?? "http://localhost:8080";
 const secret = process.env.SESSION_SECRET?.trim() || process.env.GOOGLE_CLIENT_SECRET!.trim();
 const token = (id: string) => {
   const payload = `${Buffer.from(id).toString("base64url")}.${Math.floor(Date.now() / 1000) + 3600}`;
@@ -34,13 +35,39 @@ const base = (id: string, name: string): DbUser => ({
   city: "Dhaka", cityBn: "ঢাকা", cityTerms: ["dhaka"], roles: ["vocalist"], instruments: ["Voice"],
   instrumentsBn: ["Voice"], genres: ["Folk"], genresBn: ["Folk"], genreTerms: ["folk"], languages: ["Bangla"],
   languagesBn: ["বাংলা"], languageTerms: ["bangla"], bio: "", bioBn: "", openToWork: true, mood: [], moodBn: [],
-  moodTerms: [], followers: 0, rating: 5, ratingCount: 0,
+  moodTerms: [], followers: 0,   rating: 5, ratingCount: 0,
 });
+
+async function seed(user: DbUser) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  await pool.query(
+    `INSERT INTO users (
+      id, email, google_sub, profile_completed, name, name_bn, city, city_bn, city_terms,
+      roles, instruments, instruments_bn, genres, genres_bn, genre_terms,
+      languages, languages_bn, language_terms, bio, bio_bn, open_to_work,
+      mood, mood_bn, mood_terms, followers, rating, rating_count
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb,
+      $10::jsonb, $11::jsonb, $12::jsonb, $13::jsonb, $14::jsonb, $15::jsonb,
+      $16::jsonb, $17::jsonb, $18::jsonb, $19, $20, $21,
+      $22::jsonb, $23::jsonb, $24::jsonb, $25, $26, $27
+    ) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, profile_completed = EXCLUDED.profile_completed`,
+    [
+      user.id, user.email, user.googleSub, user.profileCompleted, user.name, user.nameBn, user.city, user.cityBn,
+      JSON.stringify(user.cityTerms), JSON.stringify(user.roles), JSON.stringify(user.instruments),
+      JSON.stringify(user.instrumentsBn), JSON.stringify(user.genres), JSON.stringify(user.genresBn),
+      JSON.stringify(user.genreTerms), JSON.stringify(user.languages), JSON.stringify(user.languagesBn),
+      JSON.stringify(user.languageTerms), user.bio, user.bioBn, user.openToWork, JSON.stringify(user.mood),
+      JSON.stringify(user.moodBn), JSON.stringify(user.moodTerms), user.followers, user.rating, user.ratingCount,
+    ],
+  );
+  await pool.end();
+}
 
 const A = "zz-smoke-a";
 const B = "zz-smoke-b";
-await upsertUserInPg(base(A, "Smoke Buyer"));
-await upsertUserInPg(base(B, "Smoke Musician"));
+await seed(base(A, "Smoke Buyer"));
+await seed(base(B, "Smoke Musician"));
 
 let failures = 0;
 function check(label: string, rawOk: unknown, detail?: unknown) {
@@ -196,8 +223,9 @@ try {
   const served = await fetch(`${BASE}${upJson.url}`, { headers: { Range: "bytes=0-9" } });
   check("uploaded file served with range", served.status === 206 || served.status === 200, served.status);
   if (upJson.url) {
-    const fs = await import("node:fs");
-    fs.rmSync(`public${upJson.url}`, { force: true });
+    const fileName = path.basename(upJson.url);
+    fs.rmSync(path.join(process.env.UPLOAD_DIR ?? "uploads", fileName), { force: true });
+    fs.rmSync(path.join("public", "uploads", fileName), { force: true });
   }
 } catch (error) {
   failures++;
