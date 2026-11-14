@@ -127,7 +127,7 @@ export function SelfieVerify({
         </div>
         {error ? (
           <p className="mt-3 text-sm text-red-600">
-            {error === "blocked" ? t("selfieCameraBlocked") : t("selfieFailed")}
+            {error === "blocked" ? t("selfieCameraBlocked") : error === "failed" ? t("selfieFailed") : error}
           </p>
         ) : null}
         <div className="mt-4 flex flex-wrap justify-end gap-2">
