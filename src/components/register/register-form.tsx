@@ -1,6 +1,6 @@
 "use client";
 
-import { type KeyboardEvent, type ReactNode, useState } from "react";
+import { type KeyboardEvent, type ReactNode, useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -155,6 +155,14 @@ function ProfileWizard({
   const [maxReached, setMaxReached] = useState(user.profileCompleted ? steps.length - 1 : 0);
   const [showErrors, setShowErrors] = useState(false);
   const [kind, setKind] = useState<AccountKind | "">(user.profileCompleted ? accountKindOf(user) : "");
+
+  useEffect(() => {
+    if (user.profileCompleted) return;
+    const requested = new URLSearchParams(window.location.search).get("as");
+    if (requested === "agency" || requested === "musician" || requested === "member") {
+      setKind(requested);
+    }
+  }, [user.profileCompleted]);
 
   const [role, setRole] = useState<Role>(
     user.roles[0] === "vocalist" ||

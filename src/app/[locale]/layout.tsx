@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { FacebookChatDock } from "@/components/chat/facebook-chat-dock";
 import { DockInset } from "@/components/layout/dock-inset";
+import { SaveProgress } from "@/components/layout/save-progress";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { PwaRegister } from "@/components/pwa/pwa-register";
@@ -96,6 +97,7 @@ export default async function LocaleLayout({
         </a>
         <NextIntlClientProvider>
           <DockInset />
+          <SaveProgress />
           <SiteHeader />
           <PwaRegister>
             <main id="main" className="min-w-0 flex-1">

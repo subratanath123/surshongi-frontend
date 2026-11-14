@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Scissors, Search } from "lucide-react";
+import { CircleHelp, Scissors, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Mark } from "@/components/brand/mark";
 import { HeaderAuthPill } from "@/components/layout/header-auth-pill";
@@ -36,6 +36,15 @@ export function SiteHeader() {
           >
             <Search className="size-4" aria-hidden />
           </button>
+          <Link
+            href="/how"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
+            aria-label={t("how")}
+            title={t("how")}
+          >
+            <CircleHelp className="size-4" aria-hidden />
+            <span className="hidden xl:inline">{t("how")}</span>
+          </Link>
           <Link
             href="/editor"
             className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"

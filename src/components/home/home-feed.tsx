@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "re
 import {
   Globe,
   Heart,
+  Loader2,
   MessageCircle,
   Pencil,
   Plus,
@@ -33,6 +34,8 @@ import {
   uploadAudioFile,
   useCommunityStore,
   useCurrentUser,
+  useFollowBusy,
+  usePrefsBusy,
 } from "@/lib/community-store";
 import type { CommunityPost, DbUser, PostCategory } from "@/lib/db-types";
 import { formatCount, formatNumber, formatRating } from "@/lib/format";
@@ -215,12 +218,14 @@ function CategoryBand({
   service,
   label,
   onPick,
+  sectionId,
 }: {
   title: string;
   tiles: CategoryTile[];
   service: ServiceId | null;
   label: (id: ServiceId) => string;
   onPick: (id: ServiceId) => void;
+  sectionId?: string;
 }) {
   const t = useTranslations("Home");
   const [open, setOpen] = useState(false);
@@ -228,7 +233,7 @@ function CategoryBand({
   const rest = tiles.slice(4);
 
   return (
-    <section className="mt-6">
+    <section id={sectionId} className="mt-6 scroll-mt-24">
       <h2 className="text-sm font-semibold text-[#222325]">{title}</h2>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {preview.map((tile) => (
@@ -315,6 +320,7 @@ export function HomeFeed() {
   const urlQuery = searchParams.get("q")?.trim() ?? "";
   const { db, hydrated } = useCommunityStore();
   const currentUser = useCurrentUser();
+  const prefsBusy = usePrefsBusy();
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -522,6 +528,22 @@ export function HomeFeed() {
     composerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [composerOpen]);
 
+  useEffect(() => {
+    const scrollToHash = () => {
+      const id = window.location.hash.replace("#", "");
+      if (!id || id === "messages") return;
+      if (id === "composer") {
+        setFilter("all");
+        setComposerOpen(true);
+        return;
+      }
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    scrollToHash();
+    window.addEventListener("hashchange", scrollToHash);
+    return () => window.removeEventListener("hashchange", scrollToHash);
+  }, []);
+
   async function handleSemanticSearch(event: FormEvent) {
     event.preventDefault();
     const q = query.trim();
@@ -654,6 +676,7 @@ export function HomeFeed() {
       >
         <div className="overflow-hidden">
           <CategoryBand
+            sectionId="hire"
             title={t("hireHeading")}
             tiles={categoryTiles.filter((tile) => tile.group === "hire")}
             service={service}
@@ -795,8 +818,17 @@ export function HomeFeed() {
                   </h2>
                 </div>
 
-                <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
-                  <p className="text-xs font-semibold text-[#222325]">{t("feedPrefsLabel")}</p>
+                <div
+                  id="feed-prefs"
+                  className="scroll-mt-24 rounded-xl border border-border bg-white p-4 shadow-sm"
+                  aria-busy={prefsBusy}
+                >
+                  <p className="flex items-center gap-2 text-xs font-semibold text-[#222325]">
+                    {prefsBusy ? (
+                      <Loader2 className="size-3.5 animate-spin text-[#1dbf73]" aria-hidden="true" />
+                    ) : null}
+                    {t("feedPrefsLabel")}
+                  </p>
                   {currentUser ? (
                     <>
                       <div className="mt-2 flex flex-wrap gap-2">
@@ -839,7 +871,11 @@ export function HomeFeed() {
                   )}
                 </div>
 
-                <div ref={composerRef} className="scroll-mt-24 rounded-xl border border-border bg-white p-4 shadow-sm">
+                <div
+                  id="composer"
+                  ref={composerRef}
+                  className="scroll-mt-24 rounded-xl border border-border bg-white p-4 shadow-sm"
+                >
                   {composerOpen ? (
                     <form onSubmit={(e) => void handleCreatePost(e)}>
                       <div className="flex items-center gap-3">
@@ -1071,8 +1107,9 @@ export function HomeFeed() {
 
               {/* Right Sidebar: Suggested Musicians Directory */}
               <aside
+                id="directory"
                 aria-labelledby="directory-heading"
-                className="rounded-lg border border-border bg-card p-4 shadow-md lg:sticky lg:top-20"
+                className="scroll-mt-24 rounded-lg border border-border bg-card p-4 shadow-md lg:sticky lg:top-20"
               >
                 <div className="flex items-center justify-between gap-2 pb-3">
                   <h2 id="directory-heading" className="font-display text-base font-bold">
@@ -1133,6 +1170,7 @@ function PostCard({
   onRequireSignIn: () => void;
 }) {
   const t = useTranslations("Home");
+  const followBusy = useFollowBusy(author.id);
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editCategory, setEditCategory] = useState<PostCategory>(post.category);
@@ -1231,6 +1269,7 @@ function PostCard({
                   <button
                     type="button"
                     aria-pressed={following}
+                    aria-busy={followBusy}
                     onClick={() => {
                       if (!activeUserId) {
                         onRequireSignIn();
@@ -1244,10 +1283,11 @@ function PostCard({
                     }}
                     className={
                       following
-                        ? "text-xs font-semibold text-muted-foreground hover:text-foreground"
-                        : "text-xs font-semibold text-primary hover:underline"
+                        ? "inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                        : "inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                     }
                   >
+                    {followBusy ? <Loader2 className="size-3 animate-spin" aria-hidden="true" /> : null}
                     {following ? t("followingBtn") : t("followBtn")}
                   </button>
                 </>
@@ -1584,6 +1624,7 @@ function SidebarMusicianRow({
   onRequireSignIn: () => void;
 }) {
   const t = useTranslations("Home");
+  const followBusy = useFollowBusy(person.id);
   const name = pick(locale, person.nameBn, person.name);
   const role = t(roleLabelKey(person));
 
@@ -1628,6 +1669,7 @@ function SidebarMusicianRow({
             <button
               type="button"
               aria-pressed={following}
+              aria-busy={followBusy}
               onClick={() => {
                 if (!activeUserId) {
                   onRequireSignIn();
@@ -1645,7 +1687,13 @@ function SidebarMusicianRow({
                   : "inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/25"
               }
             >
-              {following ? <UserCheck className="size-3" /> : <UserPlus className="size-3" />}
+              {followBusy ? (
+                <Loader2 className="size-3 animate-spin" aria-hidden="true" />
+              ) : following ? (
+                <UserCheck className="size-3" />
+              ) : (
+                <UserPlus className="size-3" />
+              )}
               <span>{following ? t("followingBtn") : t("followBtn")}</span>
             </button>
           </>
@@ -1676,6 +1724,7 @@ function PersonCard({
   onRequireSignIn: () => void;
 }) {
   const t = useTranslations("Home");
+  const followBusy = useFollowBusy(person.id);
   const name = pick(locale, person.nameBn, person.name);
   const role = t(roleLabelKey(person));
 
@@ -1723,6 +1772,7 @@ function PersonCard({
               <button
                 type="button"
                 aria-pressed={following}
+                aria-busy={followBusy}
                 onClick={() => {
                   if (!activeUserId) {
                     onRequireSignIn();
@@ -1736,10 +1786,11 @@ function PersonCard({
                 }}
                 className={
                   following
-                    ? "shrink-0 rounded-full border border-border bg-secondary px-3 py-1 text-xs text-foreground"
-                    : "shrink-0 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground"
+                    ? "inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-secondary px-3 py-1 text-xs text-foreground"
+                    : "inline-flex shrink-0 items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground"
                 }
               >
+                {followBusy ? <Loader2 className="size-3 animate-spin" aria-hidden="true" /> : null}
                 {following ? t("followingBtn") : t("followBtn")}
               </button>
             ) : null}

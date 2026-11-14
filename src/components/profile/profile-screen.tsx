@@ -8,6 +8,7 @@ import {
   Copy,
   Globe,
   Heart,
+  Loader2,
   Lock,
   MessageCircle,
   MoveVertical,
@@ -47,6 +48,7 @@ import {
   uploadAudioFile,
   useCommunityStore,
   useCurrentUser,
+  useFollowBusy,
 } from "@/lib/community-store";
 import { formatCount, formatNumber, formatRating } from "@/lib/format";
 import type { MediaAttachmentKind, PostCategory } from "@/lib/db-types";
@@ -61,6 +63,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
   const router = useRouter();
   const { db, hydrated } = useCommunityStore();
   const currentUser = useCurrentUser();
+  const followBusy = useFollowBusy(musicianId);
   const activeUserId = currentUser?.id ?? null;
 
   const [addKind, setAddKind] = useState<"youtube" | "audio">("youtube");
@@ -528,6 +531,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                     variant={following ? "secondary" : "default"}
                     className="rounded-full"
                     aria-pressed={following}
+                    aria-busy={followBusy}
                     onClick={() => {
                       if (!activeUserId) {
                         router.push("/register");
@@ -540,6 +544,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                       });
                     }}
                   >
+                    {followBusy ? <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> : null}
                     {following ? watch("following") : watch("follow")}
                   </Button>
                   <Button

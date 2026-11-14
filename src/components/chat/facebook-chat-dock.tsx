@@ -59,6 +59,33 @@ export function FacebookChatDock() {
   const activeUserId = currentUser?.id ?? null;
   const [launcherOpen, setLauncherOpen] = useState(false);
 
+  const sheetOpen = Boolean(
+    activeUserId && chatWindows.some((win) => win.musicianId !== activeUserId && !win.minimized),
+  );
+
+  useEffect(() => {
+    const openFromHash = () => {
+      if (window.location.hash === "#messages") setLauncherOpen(true);
+    };
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+    return () => window.removeEventListener("hashchange", openFromHash);
+  }, []);
+
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const narrow = window.matchMedia("(max-width: 639px)");
+    const lock = () => {
+      document.body.style.overflow = narrow.matches ? "hidden" : "";
+    };
+    lock();
+    narrow.addEventListener("change", lock);
+    return () => {
+      narrow.removeEventListener("change", lock);
+      document.body.style.overflow = "";
+    };
+  }, [sheetOpen]);
+
   // Only list users with whom the current user actually has a conversation or an order
   const conversationPeers = useMemo(() => {
     if (!activeUserId) return [];
@@ -115,8 +142,13 @@ export function FacebookChatDock() {
   const visibleChatWindows = chatWindows.filter((win) => win.musicianId !== activeUserId);
 
   return (
+    <>
     <div
-      className="pointer-events-none fixed z-[60] flex w-max max-w-[calc(100%-1.5rem)] max-h-[calc(100dvh-var(--dock-bottom,0px)-1.5rem)] flex-col items-end justify-end gap-2"
+      className={
+        sheetOpen
+          ? "pointer-events-none fixed z-[60] flex flex-col items-end justify-end max-sm:!inset-0 max-sm:!h-dvh max-sm:!w-dvw max-sm:max-h-none max-sm:max-w-none sm:max-h-[calc(100dvh-var(--dock-bottom,0px)-1.5rem)] sm:w-max sm:max-w-[calc(100%-1.5rem)] sm:gap-2"
+          : "pointer-events-none fixed z-[60] flex w-max max-w-[calc(100%-1.5rem)] max-h-[calc(100dvh-var(--dock-bottom,0px)-1.5rem)] flex-col items-end justify-end gap-2"
+      }
       style={{
         right: "max(0.75rem, calc(var(--dock-right, 0px) + env(safe-area-inset-right, 0px)))",
         bottom:
@@ -124,7 +156,7 @@ export function FacebookChatDock() {
       }}
       aria-label={t("chatHeading")}
     >
-      <div className="flex min-h-0 w-full flex-col items-end gap-2 overflow-y-auto sm:w-auto sm:flex-row">
+      <div className="flex min-h-0 w-full flex-col items-end overflow-visible max-sm:h-full max-sm:flex-1 sm:w-auto sm:flex-row sm:gap-2 sm:overflow-y-auto">
       {visibleChatWindows.map((win) => {
         const peer = db.users.find((u) => u.id === win.musicianId);
         if (!peer || peer.id === activeUserId) return null;
@@ -147,8 +179,14 @@ export function FacebookChatDock() {
       </div>
 
       {/* Install sits above the messages button so the two never cover each other. */}
-      <InstallBanner className="w-full sm:w-auto" />
-      <div className="pointer-events-auto relative flex w-full flex-col items-end sm:w-auto">
+      <InstallBanner className={sheetOpen ? "hidden w-full sm:block sm:w-auto" : "w-full sm:w-auto"} />
+      <div
+        className={
+          sheetOpen
+            ? "pointer-events-auto relative hidden w-full flex-col items-end sm:flex sm:w-auto"
+            : "pointer-events-auto relative flex w-full flex-col items-end sm:w-auto"
+        }
+      >
         {launcherOpen ? (
           <div className="mb-3 w-full max-w-80 rounded-xl border border-border bg-muted p-4 shadow-2xl sm:w-80">
             <div className="flex items-center justify-between border-b border-border pb-2.5">
@@ -218,6 +256,7 @@ export function FacebookChatDock() {
         </button>
       </div>
     </div>
+    </>
   );
 }
 
@@ -441,18 +480,20 @@ function ChatBox({
   return (
     <section
       className={
-        expanded
-          ? "pointer-events-auto w-[min(22rem,calc(100dvw-2rem))] max-w-[calc(100dvw-2rem)] overflow-hidden rounded-t-xl border border-primary/40 bg-card shadow-2xl sm:w-[820px] sm:max-w-[920px] lg:w-[920px]"
-          : "pointer-events-auto w-[min(22rem,calc(100dvw-2rem))] max-w-[calc(100dvw-2rem)] overflow-hidden rounded-t-xl border border-border bg-card shadow-2xl sm:w-[620px] sm:max-w-[680px] lg:w-[680px]"
+        minimized
+          ? "pointer-events-auto w-[min(16rem,calc(100dvw-1.5rem))] overflow-hidden rounded-t-2xl border border-[#e4e5e7] bg-white shadow-[0_10px_30px_rgba(34,35,37,0.16)]"
+          : expanded
+            ? "chat-frame pointer-events-auto flex h-full w-full max-w-none flex-1 flex-col overflow-hidden rounded-none border-0 bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] sm:h-[min(78dvh,40rem)] sm:w-[min(calc(100dvw-1.5rem),34rem)] sm:flex-none sm:rounded-t-2xl sm:pt-0 sm:pb-0"
+            : "chat-frame pointer-events-auto flex h-full w-full max-w-none flex-1 flex-col overflow-hidden rounded-none border-0 bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] sm:h-[min(58dvh,26rem)] sm:w-[min(calc(100dvw-1.5rem),22rem)] sm:flex-none sm:rounded-t-2xl sm:pt-0 sm:pb-0"
       }
       aria-label={peerName}
     >
       {/* Top Facebook-style Gradient Header Bar */}
-      <div className="flex items-center justify-between gap-3 border-b border-border bg-card px-5 py-4">
-        <div className="flex min-w-0 items-center gap-3.5">
-          <span className="relative grid size-12 shrink-0 place-items-center rounded-full bg-primary text-base font-bold text-primary-foreground shadow-sm">
+      <div className="flex items-center justify-between gap-2 border-b border-border bg-white px-3 py-2.5 sm:px-4">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          <span className="relative grid size-10 shrink-0 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm">
             {peerName.slice(0, 1)}
-            <span className="absolute right-0 bottom-0 size-3 rounded-full border-2 border-black bg-emerald-400" />
+            <span className="absolute right-0 bottom-0 size-3 rounded-full border-2 border-white bg-emerald-400" />
           </span>
           <div className="min-w-0">
             <Link
@@ -472,15 +513,23 @@ function ChatBox({
           <button
             type="button"
             onClick={() => setShowOrderModal((v) => !v)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground shadow-md hover:brightness-110"
+            className={
+              expanded
+                ? "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-primary px-2.5 text-primary-foreground shadow-md hover:brightness-110"
+                : "inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:brightness-110"
+            }
+            aria-label={locale === "bn" ? "অর্ডার দাও" : "Place Order"}
           >
             <ShoppingBag className="size-3.5" />
-            <span>{locale === "bn" ? "অর্ডার দাও" : "Place Order"}</span>
+            <span className={expanded ? "pr-1 text-xs font-bold" : "sr-only"}>
+              {locale === "bn" ? "অর্ডার দাও" : "Place Order"}
+            </span>
           </button>
+          <div className="flex shrink-0 items-center">
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="grid size-9 place-items-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
+            className="hidden size-9 place-items-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground sm:grid"
             aria-label={expanded ? "Restore size" : "Expand chat"}
           >
             {expanded ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
@@ -501,6 +550,7 @@ function ChatBox({
           >
             <X className="size-4" />
           </button>
+          </div>
         </div>
       </div>
 
@@ -913,11 +963,7 @@ function ChatBox({
 
           <div
             ref={threadContainerRef}
-            className={
-              expanded
-                ? "h-[60vh] max-h-[700px] min-h-[16rem] space-y-4 overflow-y-auto p-6 sm:min-h-[420px]"
-                : "h-[46vh] max-h-[560px] min-h-[12rem] space-y-3.5 overflow-y-auto p-5 sm:min-h-[360px]"
-            }
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4"
           >
             {threadMessages.length === 0 ? (
               <p className="text-base leading-7 text-muted-foreground">{t("emptyChat")}</p>
@@ -953,7 +999,7 @@ function ChatBox({
 
           <form
             onSubmit={(e) => void handleSend(e)}
-            className="border-t border-border bg-secondary p-3.5"
+            className="shrink-0 border-t border-border bg-secondary p-3"
           >
             {referencedPost ? (
               <div className="mb-2 flex items-start justify-between gap-2 rounded-xl border border-border bg-white px-3 py-2">

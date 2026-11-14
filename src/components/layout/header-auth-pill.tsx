@@ -62,7 +62,14 @@ export function HeaderAuthPill() {
           <Menu className="size-4" aria-hidden />
         </button>
         {menuOpen ? (
-          <div className="absolute right-0 top-12 z-50 w-44 rounded-xl border border-border bg-white p-1.5 shadow-xl sm:hidden">
+          <div className="absolute right-0 top-12 z-50 w-48 rounded-xl border border-border bg-white p-1.5 shadow-xl sm:hidden">
+            <Link
+              href="/how"
+              onClick={() => setMenuOpen(false)}
+              className="block rounded-lg px-3 py-2 text-sm font-semibold text-[#222325] hover:bg-secondary"
+            >
+              {t("how")}
+            </Link>
             <Link
               href="/orders"
               onClick={() => setMenuOpen(false)}

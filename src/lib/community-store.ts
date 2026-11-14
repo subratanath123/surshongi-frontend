@@ -19,6 +19,8 @@ type ClientStoreState = {
   googleClientId: string;
   chatWindows: OpenChatWindow[];
   hydrated: boolean;
+  /** In-flight saves, so buttons can spin while the API catches up. */
+  pendingKeys: string[];
 };
 
 const legacySessionKey = "sur_session_user_id";
@@ -33,6 +35,7 @@ let state: ClientStoreState = {
   googleClientId: "",
   chatWindows: [],
   hydrated: false,
+  pendingKeys: [],
 };
 
 let lastDbJson = "";
@@ -103,6 +106,8 @@ async function pollCommunityDatabase() {
     const res = await fetch(apiUrl("/community-data"), { cache: "no-store" });
     if (!res.ok) return;
     const db = (await res.json()) as CommunityDatabase;
+    // A slow poll must not undo a follow or preference the user just toggled.
+    if (state.pendingKeys.length > 0) return;
     applyIncomingDatabase(db, false);
   } catch {
     // ignore transient poll errors
@@ -207,6 +212,21 @@ export function useCurrentUser(): DbUser | null {
   return db.users.find((u) => u.id === currentUserId) ?? null;
 }
 
+export function useFollowBusy(musicianId: string) {
+  const { pendingKeys } = useCommunityStore();
+  return pendingKeys.includes(`follow:${musicianId}`);
+}
+
+export function usePrefsBusy() {
+  const { pendingKeys } = useCommunityStore();
+  return pendingKeys.includes("prefs");
+}
+
+export function useSaveBusy() {
+  const { pendingKeys } = useCommunityStore();
+  return pendingKeys.length > 0;
+}
+
 function saveChatWindows(next: OpenChatWindow[]) {
   state = { ...state, chatWindows: next };
   if (typeof window !== "undefined") {
@@ -273,8 +293,43 @@ export function applyAuthenticatedUser(db: CommunityDatabase, user: DbUser) {
 export async function mutateCommunity<T = { db: CommunityDatabase; user?: DbUser }>(
   payload: Record<string, unknown>,
 ): Promise<T> {
-  // Optimistic instant update when sending a chat message
+  let previousDb: CommunityDatabase | null = null;
+  let pendingKey = "save";
+
   if (
+    payload.action === "toggleFollow" &&
+    typeof payload.followerId === "string" &&
+    typeof payload.musicianId === "string"
+  ) {
+    pendingKey = `follow:${payload.musicianId}`;
+    previousDb = state.db;
+    const followerId = payload.followerId;
+    const musicianId = payload.musicianId;
+    const list = [...(state.db.follows[followerId] ?? [])];
+    const index = list.indexOf(musicianId);
+    if (index >= 0) list.splice(index, 1);
+    else list.push(musicianId);
+    state = {
+      ...state,
+      db: { ...state.db, follows: { ...state.db.follows, [followerId]: list } },
+    };
+  } else if (payload.action === "updateFeedPreferences" && Array.isArray(payload.preferences)) {
+    pendingKey = "prefs";
+    previousDb = state.db;
+    const userId = state.currentUserId;
+    const preferences = payload.preferences.filter((item): item is string => typeof item === "string");
+    if (userId) {
+      state = {
+        ...state,
+        db: {
+          ...state.db,
+          users: state.db.users.map((user) =>
+            user.id === userId ? { ...user, feedPreferences: preferences } : user,
+          ),
+        },
+      };
+    }
+  } else if (
     payload.action === "sendMessage" &&
     typeof payload.fromId === "string" &&
     typeof payload.toId === "string" &&
@@ -282,6 +337,7 @@ export async function mutateCommunity<T = { db: CommunityDatabase; user?: DbUser
       typeof payload.attachmentUrl === "string" ||
       typeof payload.postId === "string")
   ) {
+    pendingKey = "";
     const attachmentUrl =
       typeof payload.attachmentUrl === "string" ? payload.attachmentUrl : undefined;
     const attachmentKind =
@@ -314,29 +370,55 @@ export async function mutateCommunity<T = { db: CommunityDatabase; user?: DbUser
         messages: [...state.db.messages, optimisticMsg],
       },
     };
-    emit();
   }
 
-  const res = await fetch(apiUrl("/community-data"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(payload),
-    cache: "no-store",
-  });
-  const text = await res.text();
-  let data: T & { db?: CommunityDatabase; user?: DbUser; error?: string };
+  if (pendingKey && !state.pendingKeys.includes(pendingKey)) {
+    state = { ...state, pendingKeys: [...state.pendingKeys, pendingKey] };
+  }
+  emit();
+  const startedAt = Date.now();
+
   try {
-    data = JSON.parse(text) as T & { db?: CommunityDatabase; user?: DbUser; error?: string };
-  } catch {
-    throw new Error(res.ok ? "Could not read the server response." : `Could not save (${res.status}).`);
+    const res = await fetch(apiUrl("/community-data"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    });
+    const text = await res.text();
+    let data: T & { db?: CommunityDatabase; user?: DbUser; error?: string };
+    try {
+      data = JSON.parse(text) as T & { db?: CommunityDatabase; user?: DbUser; error?: string };
+    } catch {
+      throw new Error(res.ok ? "Could not read the server response." : `Could not save (${res.status}).`);
+    }
+    if (!res.ok) {
+      if (previousDb) {
+        state = { ...state, db: previousDb };
+        previousDb = null;
+        emit();
+      }
+      if (!data.error) throw new Error(`Could not save (${res.status}).`);
+      return data;
+    }
+    if (data.db) {
+      applyIncomingDatabase(data.db, false);
+    }
+    return data;
+  } catch (err) {
+    if (previousDb) {
+      state = { ...state, db: previousDb };
+      emit();
+    }
+    throw err;
+  } finally {
+    if (pendingKey && state.pendingKeys.includes(pendingKey)) {
+      const remain = 450 - (Date.now() - startedAt);
+      if (remain > 0) await new Promise((resolve) => setTimeout(resolve, remain));
+      state = { ...state, pendingKeys: state.pendingKeys.filter((key) => key !== pendingKey) };
+      emit();
+    }
   }
-  if (!res.ok && !data.error) {
-    throw new Error(`Could not save (${res.status}).`);
-  }
-  if (data.db) {
-    applyIncomingDatabase(data.db, false);
-  }
-  return data;
 }
 
 export async function uploadAudioFile(

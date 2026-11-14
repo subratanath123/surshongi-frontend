@@ -17,7 +17,10 @@ export function SiteFooter() {
           <p className="mt-3 text-sm leading-6 text-white/70">{t("blurb")}</p>
         </div>
         <div className="flex flex-col gap-3 text-sm sm:items-end">
-          <nav className="flex gap-4" aria-label={nav("brand")}>
+          <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label={nav("brand")}>
+            <Link href="/how" className="text-white/70 hover:text-white">
+              {nav("how")}
+            </Link>
             <Link href="/register" className="text-white/70 hover:text-white">
               {nav("register")}
             </Link>

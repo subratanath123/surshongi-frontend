@@ -126,6 +126,59 @@
       }
     ]
   },
+  "Guide": {
+    "title": "How it works",
+    "sub": "Every option below opens that part of SurShongi, so you can see it and use it.",
+    "open": "Open",
+    "ask": {
+      "title": "Ask for someone",
+      "body": "Write the voice, the city, or the instrument you need. Ask uses the same search as the box at the top of the home page."
+    },
+    "hire": {
+      "title": "Hire a player or a whole stage",
+      "body": "Home starts with a stage agency, then singers, guitar, tabla, and the other skills. Tap a card to see who offers it."
+    },
+    "agency": {
+      "title": "Join as a stage agency",
+      "body": "An agency offers the full show: band, sound, lights, and the performance. This opens the join form on that choice. A profile that is already finished keeps its current type."
+    },
+    "musician": {
+      "title": "Join as a musician",
+      "body": "Add what you play, a starting price, and a sample. People can hire you from search and from your profile."
+    },
+    "member": {
+      "title": "Join without being a musician",
+      "body": "A regular member can browse, follow, and message. Instruments, a price, and a showcase are not required."
+    },
+    "prefs": {
+      "title": "Choose what you see first",
+      "body": "On the home feed, turn on the skills and genres you want at the top. The chip changes immediately, and the green bar shows while it saves."
+    },
+    "follow": {
+      "title": "Follow musicians",
+      "body": "Follow someone from a post, the directory, or their profile. Their posts collect under Following."
+    },
+    "post": {
+      "title": "Post an offer or a part you need",
+      "body": "Write what you are offering, or the part you are looking for. You can add a price, a YouTube link, or audio."
+    },
+    "messages": {
+      "title": "Message someone",
+      "body": "The green messages button stays in the corner of the screen. When you are signed in, this opens your conversation list."
+    },
+    "orders": {
+      "title": "Place an order and follow it",
+      "body": "From a chat you can place an order and note the bKash TrxID you already confirmed in your own app. The orders page lists what you sent and what you received."
+    },
+    "editor": {
+      "title": "Cut and mix a song",
+      "body": "Upload audio, trim it, and shape the mix. The same cutter works on a phone."
+    },
+    "profile": {
+      "title": "Your profile",
+      "body": "Visitors see your samples and links. You change photos, social links, and YouTube from the profile when you choose edit."
+    }
+  },
   "Paths": {
     "title": "Start from either side",
     "sub": "One account can hold more than one role. For now, see which door is yours.",
