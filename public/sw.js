@@ -10,17 +10,37 @@ try {
     appId: "1:563809041872:web:d1a5cbf411a956f16d8dd5",
   });
   firebase.messaging().onBackgroundMessage((payload) => {
-    if (payload.notification) return;
+    const note = payload.notification || {};
     const data = payload.data || {};
-    const title = data.title || "SurShongi";
+    const title = note.title || data.title || "SurShongi";
+    const body = note.body || data.body || "";
+    const url = (payload.fcmOptions && payload.fcmOptions.link) || data.url || "/";
     return self.registration.showNotification(title, {
-      body: data.body || "",
+      body,
       icon: "/icons/icon-192.png",
-      data: { url: data.url || "/" },
+      data: { url },
     });
   });
 } catch {
-  // The installed app still opens if Firebase cannot be loaded.
+  self.addEventListener("push", (event) => {
+    let payload = {};
+    try {
+      payload = event.data ? event.data.json() : {};
+    } catch {
+      payload = {};
+    }
+    const note = payload.notification || {};
+    const data = payload.data || {};
+    const title = note.title || data.title || "SurShongi";
+    const body = note.body || data.body || "";
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        body,
+        icon: "/icons/icon-192.png",
+        data: { url: (payload.fcmOptions && payload.fcmOptions.link) || data.url || "/" },
+      }),
+    );
+  });
 }
 
 self.addEventListener("notificationclick", (event) => {
@@ -36,7 +56,7 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-const CACHE = "surshongi-static-v1";
+const CACHE = "surshongi-static-v2";
 const PRECACHE = ["/offline.html", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {

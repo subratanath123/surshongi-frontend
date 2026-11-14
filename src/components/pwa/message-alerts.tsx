@@ -5,13 +5,6 @@ import { useTranslations } from "next-intl";
 import { mutateCommunity, useCurrentUser } from "@/lib/community-store";
 import { firebaseConfig, firebaseVapidKey } from "@/lib/firebase-public";
 
-function installedApp() {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    (window.navigator as Navigator & { standalone?: boolean }).standalone === true
-  );
-}
-
 let listening = false;
 
 async function savePushToken() {
@@ -43,46 +36,48 @@ async function savePushToken() {
 export function MessageAlerts({ className = "" }: { className?: string }) {
   const t = useTranslations("Pwa");
   const user = useCurrentUser();
-  const [standalone, setStandalone] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission | "unknown">("unknown");
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    setStandalone(installedApp());
     if ("Notification" in window) setPermission(Notification.permission);
   }, []);
 
   useEffect(() => {
-    if (!standalone || !user?.id || permission !== "granted") return;
-    if (!("serviceWorker" in navigator)) return;
+    if (!user?.id || permission !== "granted") return;
+    if (!("serviceWorker" in navigator) || !("Notification" in window)) return;
     void savePushToken().then(() => setFailed(false)).catch(() => setFailed(true));
-  }, [standalone, user?.id, permission]);
+  }, [user?.id, permission]);
 
-  if (!standalone || !user || (permission !== "default" && !failed)) return null;
+  if (!user || (permission !== "default" && permission !== "denied" && !failed)) return null;
 
   return (
-    <div
-      className={`pointer-events-auto flex max-w-md items-center gap-2 rounded-2xl border border-[#e4e5e7] bg-white p-2.5 shadow-xl sm:gap-3 sm:p-3 ${className}`}
-    >
-      <p className="min-w-0 flex-1 text-sm text-[#222325]">{failed ? t("notifyFailed") : t("notify")}</p>
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => {
-          if (!("Notification" in window)) return;
-          setBusy(true);
-          void Notification.requestPermission()
-            .then((result) => {
-              setPermission(result);
-              if (result === "granted") return savePushToken();
-            })
-            .finally(() => setBusy(false));
-        }}
-        className="h-9 shrink-0 rounded-full bg-[#1dbf73] px-3 text-xs font-semibold text-white disabled:opacity-60"
-      >
-        {t("notifyOn")}
-      </button>
+    <div className={`border-b border-[#d7f3e4] bg-[#f3fbf6] px-4 py-2.5 ${className}`}>
+      <div className="mx-auto flex max-w-6xl items-center gap-3">
+      <p className="min-w-0 flex-1 text-sm text-[#222325]">
+        {permission === "denied" ? t("notifyBlocked") : failed ? t("notifyFailed") : t("notify")}
+      </p>
+      {permission === "denied" ? null : (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => {
+            if (!("Notification" in window)) return;
+            setBusy(true);
+            void Notification.requestPermission()
+              .then((result) => {
+                setPermission(result);
+                if (result === "granted") return savePushToken();
+              })
+              .finally(() => setBusy(false));
+          }}
+          className="h-9 shrink-0 rounded-full bg-[#1dbf73] px-3 text-xs font-semibold text-white disabled:opacity-60"
+        >
+          {t("notifyOn")}
+        </button>
+      )}
+      </div>
     </div>
   );
 }

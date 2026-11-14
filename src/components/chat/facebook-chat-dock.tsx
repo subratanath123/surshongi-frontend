@@ -27,7 +27,6 @@ import {
   MediaAttachmentPreview,
 } from "@/components/media/media-attachment-preview";
 import { PaymentCheck } from "@/components/orders/payment-check";
-import { MessageAlerts } from "@/components/pwa/message-alerts";
 import { InstallBanner } from "@/components/pwa/pwa-register";
 import { roleLabelKey } from "@/lib/account-kind";
 import { pick } from "@/data/catalog";
@@ -179,8 +178,7 @@ export function FacebookChatDock() {
       })}
       </div>
 
-      {/* Alerts and install sit above the messages button so they never cover each other. */}
-      <MessageAlerts className={sheetOpen ? "hidden w-full sm:block sm:w-auto" : "w-full sm:w-auto"} />
+      {/* Install sits above the messages button so they never cover each other. */}
       <InstallBanner className={sheetOpen ? "hidden w-full sm:block sm:w-auto" : "w-full sm:w-auto"} />
       <div
         className={
@@ -1063,7 +1061,7 @@ function ChatBox({
               </div>
             ) : null}
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-end gap-2">
               <label
                 className="inline-flex h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-white px-3.5 text-xs font-medium text-foreground hover:border-primary"
                 title={
@@ -1088,9 +1086,16 @@ function ChatBox({
                 />
               </label>
 
-              <input
+              <textarea
+                rows={2}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    event.currentTarget.form?.requestSubmit();
+                  }
+                }}
                 onPointerDown={(event) => {
                   event.preventDefault();
                   event.currentTarget.focus({ preventScroll: true });
@@ -1100,7 +1105,7 @@ function ChatBox({
                 }}
                 placeholder={t("chatPlaceholder")}
                 aria-label={t("messageLabel")}
-                className="h-11 min-w-0 flex-1 rounded-full border border-border bg-white px-4 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="min-h-14 min-w-0 flex-1 resize-none rounded-2xl border border-border bg-white px-4 py-2 text-sm leading-5 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
               <button
                 type="submit"

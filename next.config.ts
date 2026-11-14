@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     const backend = (process.env.BACKEND_URL ?? "http://localhost:8080").replace(/\/$/, "");
     return [
       { source: "/community-data", destination: `${backend}/community-data` },
+      { source: "/community-activity", destination: `${backend}/community-activity` },
       { source: "/community-search", destination: `${backend}/community-search` },
       { source: "/community-feed", destination: `${backend}/community-feed` },
       { source: "/community-upload", destination: `${backend}/community-upload` },

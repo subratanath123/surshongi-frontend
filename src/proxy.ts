@@ -10,5 +10,5 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher:
-    "/((?!api|trpc|auth|health|uploads|community-data|community-upload|community-search|community-feed|_next|_vercel|.*\\..*).*)",
+    "/((?!api|trpc|auth|health|uploads|community-data|community-activity|community-upload|community-search|community-feed|_next|_vercel|.*\\..*).*)",
 };

@@ -10,7 +10,8 @@
     "later": "Not now",
     "notify": "Ping this phone when a new message arrives",
     "notifyOn": "Turn on",
-    "notifyFailed": "Alerts could not be saved. Try again in a moment."
+    "notifyFailed": "Alerts could not be saved. Try again in a moment.",
+    "notifyBlocked": "Message alerts are blocked. Allow notifications for SurShongi in the phone settings."
   },
   "Nav": {
     "brand": "SurShongi",
@@ -23,6 +24,7 @@
     "register": "Sign in",
     "editProfile": "Edit profile",
     "logout": "Log out",
+    "activity": "Activity",
     "orders": "Orders",
     "start": "Start",
     "skip": "Skip to content",
@@ -385,6 +387,21 @@
     "followers": "followers",
     "views": "views",
     "rating": "Rating"
+  },
+  "Activity": {
+    "title": "User activity",
+    "lead": "Page views, sign-ins, and sign-outs.",
+    "empty": "No activity yet.",
+    "denied": "This view is only for the admin account.",
+    "when": "When",
+    "who": "Who",
+    "what": "What",
+    "where": "Page",
+    "guest": "Guest",
+    "page": "Page view",
+    "login": "Signed in",
+    "logout": "Signed out",
+    "refresh": "Refresh"
   },
   "Watch": {
     "play": "Play",
