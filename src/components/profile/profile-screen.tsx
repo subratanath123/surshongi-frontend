@@ -107,6 +107,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
   const [savingContacts, setSavingContacts] = useState(false);
 
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [postActionError, setPostActionError] = useState("");
   const [editPostCategory, setEditPostCategory] = useState<PostCategory>("offering");
   const [editPostTitle, setEditPostTitle] = useState("");
   const [editPostText, setEditPostText] = useState("");
@@ -500,34 +501,6 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                     {profile.selfieVerified ? <VerifiedMark label={t("selfieVerified")} className="size-8" /> : null}
                   </h1>
                   <ProfileLinks profile={profile} isOwner={isOwner} />
-                  {isOwner ? (
-                    <div className="mt-3">
-                      <p className="text-xs font-semibold text-[#222325]">{home("genderPrompt")}</p>
-                      <div className="mt-1.5 flex gap-2">
-                        {(["female", "male"] as const).map((item) => {
-                          const selected = profile.gender === item;
-                          return (
-                            <button
-                              key={item}
-                              type="button"
-                              aria-pressed={selected}
-                              onClick={() => {
-                                if (selected) return;
-                                void mutateCommunity({ action: "updateGender", gender: item });
-                              }}
-                              className={
-                                selected
-                                  ? "h-9 rounded-full bg-[#1dbf73] px-4 text-xs font-semibold text-white"
-                                  : "h-9 rounded-full border border-[#e4e5e7] bg-white px-4 text-xs font-semibold text-[#222325] hover:border-[#1dbf73]"
-                              }
-                            >
-                              {item === "female" ? home("genderFemale") : home("genderMale")}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
                   {isOwner ? (
                     <div className="mt-3">
                       <button
@@ -944,12 +917,33 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                         <div className="flex items-center justify-between gap-2">
                           <button
                             type="button"
-                            onClick={() =>
-                              void mutateCommunity({
-                                action: "deletePost",
-                                postId: post.id,
-                              })
-                            }
+                            onClick={() => {
+                              void (async () => {
+                                setPostActionError("");
+                                try {
+                                  const result = await mutateCommunity<{ error?: string; db?: unknown }>({
+                                    action: "deletePost",
+                                    postId: post.id,
+                                  });
+                                  if (result.error || !result.db) {
+                                    setPostActionError(
+                                      result.error ||
+                                        (locale === "bn" ? "পোস্ট মোছা যায়নি।" : "Could not delete this post."),
+                                    );
+                                    return;
+                                  }
+                                  setEditingPostId(null);
+                                } catch (ex) {
+                                  setPostActionError(
+                                    ex instanceof Error
+                                      ? ex.message
+                                      : locale === "bn"
+                                        ? "পোস্ট মোছা যায়নি।"
+                                        : "Could not delete this post.",
+                                  );
+                                }
+                              })();
+                            }}
                             className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 className="size-3.5" />
@@ -973,6 +967,9 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                             </Button>
                           </div>
                         </div>
+                        {postActionError && isEditingThis ? (
+                          <p className="text-xs text-destructive">{postActionError}</p>
+                        ) : null}
                       </form>
                     ) : (
                       <>

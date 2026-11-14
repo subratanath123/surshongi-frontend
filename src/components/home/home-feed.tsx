@@ -1361,12 +1361,32 @@ function PostCard({
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
             <button
               type="button"
-              onClick={() =>
-                void mutateCommunity({
-                  action: "deletePost",
-                  postId: post.id,
-                })
-              }
+              onClick={() => {
+                void (async () => {
+                  setEditError("");
+                  try {
+                    const result = await mutateCommunity<{ error?: string; db?: unknown }>({
+                      action: "deletePost",
+                      postId: post.id,
+                    });
+                    if (result.error || !result.db) {
+                      setEditError(
+                        result.error || (locale === "bn" ? "পোস্ট মোছা যায়নি।" : "Could not delete this post."),
+                      );
+                      return;
+                    }
+                    setEditing(false);
+                  } catch (ex) {
+                    setEditError(
+                      ex instanceof Error
+                        ? ex.message
+                        : locale === "bn"
+                          ? "পোস্ট মোছা যায়নি।"
+                          : "Could not delete this post.",
+                    );
+                  }
+                })();
+              }}
               className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/10"
             >
               <Trash2 className="size-3.5" />

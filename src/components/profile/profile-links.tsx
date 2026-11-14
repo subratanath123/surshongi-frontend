@@ -1,43 +1,59 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { Musician } from "@/data/catalog";
 import { mutateCommunity } from "@/lib/community-store";
 
 const FIELDS = [
-  { key: "twitterUrl", label: "linkTwitter", hosts: ["twitter.com", "x.com"] },
-  { key: "facebookUrl", label: "linkFacebook", hosts: ["facebook.com", "fb.com"] },
-  { key: "spotifyUrl", label: "linkSpotify", hosts: ["spotify.com"] },
-  { key: "youtubeChannelUrl", label: "linkYoutube", hosts: ["youtube.com", "youtu.be"] },
+  {
+    key: "twitterUrl",
+    label: "linkTwitter",
+    hint: "linkTwitterHint",
+    placeholder: "https://x.com/yourname",
+    hosts: ["twitter.com", "x.com"],
+  },
+  {
+    key: "facebookUrl",
+    label: "linkFacebook",
+    hint: "linkFacebookHint",
+    placeholder: "https://facebook.com/yourpage",
+    hosts: ["facebook.com", "fb.com"],
+  },
+  {
+    key: "spotifyUrl",
+    label: "linkSpotify",
+    hint: "linkSpotifyHint",
+    placeholder: "https://open.spotify.com/artist/…",
+    hosts: ["spotify.com"],
+  },
+  {
+    key: "youtubeChannelUrl",
+    label: "linkYoutube",
+    hint: "linkYoutubeHint",
+    placeholder: "https://youtube.com/@yourchannel",
+    hosts: ["youtube.com", "youtu.be", "music.youtube.com"],
+  },
 ] as const;
 
 type LinkKey = (typeof FIELDS)[number]["key"];
 
 export function ProfileLinks({ profile, isOwner }: { profile: Musician; isOwner: boolean }) {
   const t = useTranslations("Profile");
-  const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [draft, setDraft] = useState<Record<LinkKey, string>>({
-    twitterUrl: "",
-    facebookUrl: "",
-    spotifyUrl: "",
-    youtubeChannelUrl: "",
-  });
+  const [savedNote, setSavedNote] = useState(false);
+  const [draft, setDraft] = useState<Record<LinkKey, string>>(() => draftFrom(profile));
+
+  const twitterUrl = profile.twitterUrl ?? "";
+  const facebookUrl = profile.facebookUrl ?? "";
+  const spotifyUrl = profile.spotifyUrl ?? "";
+  const youtubeChannelUrl = profile.youtubeChannelUrl ?? "";
+  useEffect(() => {
+    setDraft({ twitterUrl, facebookUrl, spotifyUrl, youtubeChannelUrl });
+  }, [twitterUrl, facebookUrl, spotifyUrl, youtubeChannelUrl]);
 
   const saved = FIELDS.map((field) => ({ ...field, href: profile[field.key] })).filter((field) => field.href);
-
-  function startEdit() {
-    setDraft({
-      twitterUrl: profile.twitterUrl ?? "",
-      facebookUrl: profile.facebookUrl ?? "",
-      spotifyUrl: profile.spotifyUrl ?? "",
-      youtubeChannelUrl: profile.youtubeChannelUrl ?? "",
-    });
-    setError("");
-    setEditing(true);
-  }
 
   async function save(event: FormEvent) {
     event.preventDefault();
@@ -45,11 +61,13 @@ export function ProfileLinks({ profile, isOwner }: { profile: Musician; isOwner:
       const value = draft[field.key].trim();
       if (value && !matchesHost(value, field.hosts)) {
         setError(t("linkInvalid"));
+        setSavedNote(false);
         return;
       }
     }
     setSaving(true);
     setError("");
+    setSavedNote(false);
     try {
       const result = await mutateCommunity<{ db?: unknown; error?: string }>({
         action: "updateSocialLinks",
@@ -62,7 +80,7 @@ export function ProfileLinks({ profile, isOwner }: { profile: Musician; isOwner:
         setError(result.error || t("linkInvalid"));
         return;
       }
-      setEditing(false);
+      setSavedNote(true);
     } catch (ex) {
       setError(ex instanceof Error ? ex.message : t("linkInvalid"));
     } finally {
@@ -72,50 +90,10 @@ export function ProfileLinks({ profile, isOwner }: { profile: Musician; isOwner:
 
   if (!isOwner && saved.length === 0) return null;
 
-  return (
-    <div className="mt-3">
-      <div className="flex items-center gap-3">
+  if (!isOwner) {
+    return (
+      <div className="mt-4">
         <p className="text-xs font-semibold text-[#222325]">{t("linksTitle")}</p>
-        {isOwner && !editing ? (
-          <button type="button" onClick={startEdit} className="text-xs font-semibold text-[#1dbf73] underline">
-            {t("linksEdit")}
-          </button>
-        ) : null}
-      </div>
-      {editing ? (
-        <form onSubmit={(event) => void save(event)} className="mt-2 space-y-2">
-          <p className="text-xs text-muted-foreground">{t("linksHint")}</p>
-          {FIELDS.map((field) => (
-            <label key={field.key} className="block">
-              <span className="mb-1 block text-[11px] font-semibold text-[#222325]">{t(field.label)}</span>
-              <input
-                value={draft[field.key]}
-                onChange={(event) => setDraft((current) => ({ ...current, [field.key]: event.target.value }))}
-                placeholder="https://"
-                inputMode="url"
-                className="h-9 w-full max-w-md rounded-full border border-[#e4e5e7] bg-white px-3 text-xs text-foreground outline-none"
-              />
-            </label>
-          ))}
-          {error ? <p className="text-xs text-red-600">{error}</p> : null}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setEditing(false)}
-              className="h-8 rounded-full px-3 text-xs text-muted-foreground hover:text-foreground"
-            >
-              {t("linksCancel")}
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="h-8 rounded-full bg-[#1dbf73] px-4 text-xs font-semibold text-white disabled:opacity-60"
-            >
-              {saving ? "…" : t("linksSave")}
-            </button>
-          </div>
-        </form>
-      ) : saved.length > 0 ? (
         <div className="mt-2 flex flex-wrap gap-2">
           {saved.map((field) => (
             <a
@@ -129,11 +107,52 @@ export function ProfileLinks({ profile, isOwner }: { profile: Musician; isOwner:
             </a>
           ))}
         </div>
-      ) : (
-        <p className="mt-1 text-xs text-muted-foreground">{t("linksEmpty")}</p>
-      )}
-    </div>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={(event) => void save(event)} className="mt-4 max-w-md rounded-xl border border-[#e4e5e7] bg-white p-4">
+      <p className="text-sm font-semibold text-[#222325]">{t("linksTitle")}</p>
+      <p className="mt-1 text-xs leading-5 text-muted-foreground">{t("linksHint")}</p>
+      <div className="mt-3 space-y-3">
+        {FIELDS.map((field) => (
+          <label key={field.key} className="block">
+            <span className="block text-xs font-semibold text-[#222325]">{t(field.label)}</span>
+            <span className="mb-1 block text-[11px] text-muted-foreground">{t(field.hint)}</span>
+            <input
+              value={draft[field.key]}
+              onChange={(event) => {
+                setSavedNote(false);
+                setDraft((current) => ({ ...current, [field.key]: event.target.value }));
+              }}
+              placeholder={field.placeholder}
+              inputMode="url"
+              className="h-9 w-full rounded-full border border-[#e4e5e7] bg-white px-3 text-xs text-foreground outline-none"
+            />
+          </label>
+        ))}
+      </div>
+      {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
+      {savedNote ? <p className="mt-2 text-xs font-medium text-[#1dbf73]">{t("linksSaved")}</p> : null}
+      <button
+        type="submit"
+        disabled={saving}
+        className="mt-3 h-8 rounded-full bg-[#1dbf73] px-4 text-xs font-semibold text-white disabled:opacity-60"
+      >
+        {saving ? "…" : t("linksSave")}
+      </button>
+    </form>
   );
+}
+
+function draftFrom(profile: Musician): Record<LinkKey, string> {
+  return {
+    twitterUrl: profile.twitterUrl ?? "",
+    facebookUrl: profile.facebookUrl ?? "",
+    spotifyUrl: profile.spotifyUrl ?? "",
+    youtubeChannelUrl: profile.youtubeChannelUrl ?? "",
+  };
 }
 
 function matchesHost(value: string, hosts: readonly string[]) {

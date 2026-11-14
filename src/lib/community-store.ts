@@ -319,10 +319,20 @@ export async function mutateCommunity<T = { db: CommunityDatabase; user?: DbUser
 
   const res = await fetch(apiUrl("/community-data"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(payload),
+    cache: "no-store",
   });
-  const data = (await res.json()) as T & { db?: CommunityDatabase; user?: DbUser };
+  const text = await res.text();
+  let data: T & { db?: CommunityDatabase; user?: DbUser; error?: string };
+  try {
+    data = JSON.parse(text) as T & { db?: CommunityDatabase; user?: DbUser; error?: string };
+  } catch {
+    throw new Error(res.ok ? "Could not read the server response." : `Could not save (${res.status}).`);
+  }
+  if (!res.ok && !data.error) {
+    throw new Error(`Could not save (${res.status}).`);
+  }
   if (data.db) {
     applyIncomingDatabase(data.db, false);
   }
