@@ -33,6 +33,7 @@ import { StarRating } from "@/components/media/star-rating";
 import { YoutubePlayer } from "@/components/media/youtube-player";
 import { PaymentCheck } from "@/components/orders/payment-check";
 import { CoverPicker } from "@/components/profile/cover-picker";
+import { ProfileLinks } from "@/components/profile/profile-links";
 import { DefaultCoverArt } from "@/components/profile/default-cover-art";
 import { SelfieVerify } from "@/components/profile/selfie-verify";
 import { UserAvatar, VerifiedMark } from "@/components/profile/user-avatar";
@@ -498,6 +499,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                     {name}
                     {profile.selfieVerified ? <VerifiedMark label={t("selfieVerified")} className="size-8" /> : null}
                   </h1>
+                  <ProfileLinks profile={profile} isOwner={isOwner} />
                   {isOwner ? (
                     <div className="mt-3">
                       <p className="text-xs font-semibold text-[#222325]">{home("genderPrompt")}</p>

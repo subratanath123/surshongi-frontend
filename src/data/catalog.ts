@@ -17,6 +17,10 @@ export type Musician = {
   coverPositionY?: number;
   phone?: string;
   bkashNumber?: string;
+  twitterUrl?: string;
+  facebookUrl?: string;
+  spotifyUrl?: string;
+  youtubeChannelUrl?: string;
   isPrivate?: boolean;
   city: string;
   cityBn: string;
