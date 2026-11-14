@@ -5,7 +5,8 @@ import { MapPin, MessageCircle, PlayCircle, Star } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { getDefaultCoverUrl } from "@/components/profile/default-cover-art";
 import { UserAvatar } from "@/components/profile/user-avatar";
-import { pick, type Role } from "@/data/catalog";
+import { roleLabelKey } from "@/lib/account-kind";
+import { pick } from "@/data/catalog";
 import { Link, useRouter } from "@/i18n/navigation";
 import { openChatWindow, useCurrentUser } from "@/lib/community-store";
 import { formatNumber, formatRating } from "@/lib/format";
@@ -101,7 +102,7 @@ export function SearchResultsList({
           {hits.map((hit) => {
             const user = hit.user;
             const name = pick(locale, user.nameBn, user.name);
-            const role = user.roles[0] ? home(`roles.${user.roles[0] as Role}`) : "";
+            const role = home(roleLabelKey(user));
             const city = pick(locale, user.cityBn, user.city);
             const thumb = hit.thumbnailYoutubeId
               ? `https://i.ytimg.com/vi/${hit.thumbnailYoutubeId}/mqdefault.jpg`

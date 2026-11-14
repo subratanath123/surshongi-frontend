@@ -37,6 +37,7 @@ import {
 import type { CommunityPost, DbUser, PostCategory } from "@/lib/db-types";
 import { formatCount, formatNumber, formatRating } from "@/lib/format";
 import { apiUrl } from "@/lib/api-base";
+import { accountKindOf, roleLabelKey } from "@/lib/account-kind";
 import { hireSkills } from "@/lib/hire-skills";
 import type { SemanticMusicianHit } from "@/lib/search-types";
 import { youtubeIdFromUrl } from "@/lib/youtube";
@@ -62,7 +63,8 @@ type ServiceId =
   | "songwriters"
   | "beatmakers"
   | "mastering"
-  | "session";
+  | "session"
+  | "agency";
 
 type CategoryTile = {
   id: ServiceId;
@@ -76,6 +78,15 @@ type CategoryTile = {
 };
 
 const categoryTiles: CategoryTile[] = [
+  {
+    id: "agency",
+    image: "/covers/cover-session.jpg",
+    position: "center",
+    roles: [],
+    terms: [],
+    useRole: false,
+    group: "hire",
+  },
   ...hireSkills
     .filter((skill) => skill.onHome)
     .map((skill) => ({
@@ -153,7 +164,10 @@ function tileMatches(
   instruments: string[],
   extra = "",
   gender?: "female" | "male",
+  accountKind: "musician" | "agency" | "member" = "musician",
 ) {
+  if (tile.id === "agency") return accountKind === "agency";
+  if (accountKind === "agency" || accountKind === "member") return false;
   if (tile.gender && gender !== tile.gender) return false;
   const hay = `${instruments.join(" ")} ${extra}`.toLowerCase();
   const termHit = tile.terms.some((term) => hay.includes(term.toLowerCase()));
@@ -377,6 +391,7 @@ export function HomeFeed() {
     return db.users.filter((person) => {
       if (!person.profileCompleted) return false;
       if (person.isPrivate) return false;
+      if (accountKindOf(person) === "member" && filter !== "following") return false;
       if (activeUserId && person.id === activeUserId) return false;
       if (filter === "following" && !myFollows.includes(person.id)) return false;
       if (filter === "vocal" && !person.roles.includes("vocalist")) return false;
@@ -389,7 +404,7 @@ export function HomeFeed() {
         const tile = categoryTiles.find((item) => item.id === service);
         if (!tile) return false;
         const instruments = [...person.instruments, ...person.instrumentsBn];
-        if (!tileMatches(tile, person.roles, instruments, "", person.gender)) return false;
+        if (!tileMatches(tile, person.roles, instruments, "", person.gender, accountKindOf(person))) return false;
       }
       return true;
     });
@@ -1239,7 +1254,7 @@ function PostCard({
               ) : null}
             </div>
             <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
-              <span className="whitespace-nowrap">{t(`roles.${author.roles[0] as Role}`)}</span>
+              <span className="whitespace-nowrap">{t(roleLabelKey(author))}</span>
               <span aria-hidden="true">·</span>
               <span className="whitespace-nowrap">{pick(locale, author.cityBn, author.city)}</span>
               {timeLabel ? (
@@ -1570,7 +1585,7 @@ function SidebarMusicianRow({
 }) {
   const t = useTranslations("Home");
   const name = pick(locale, person.nameBn, person.name);
-  const role = t(`roles.${person.roles[0] as Role}`);
+  const role = t(roleLabelKey(person));
 
   return (
     <div className="flex items-start justify-between gap-3">
@@ -1662,7 +1677,7 @@ function PersonCard({
 }) {
   const t = useTranslations("Home");
   const name = pick(locale, person.nameBn, person.name);
-  const role = t(`roles.${person.roles[0] as Role}`);
+  const role = t(roleLabelKey(person));
 
   return (
     <div className="flex h-full flex-col justify-between overflow-hidden rounded-md border border-[#e4e5e7] bg-white transition-shadow hover:shadow-md">

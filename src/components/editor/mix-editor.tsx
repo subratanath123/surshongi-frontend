@@ -31,7 +31,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { UserAvatar } from "@/components/profile/user-avatar";
 import { Button } from "@/components/ui/button";
-import { pick, type Role } from "@/data/catalog";
+import { roleLabelKey } from "@/lib/account-kind";
+import { pick } from "@/data/catalog";
 import {
   mutateCommunity,
   openChatWindow,
@@ -1161,7 +1162,7 @@ export function MixEditor() {
                         {pick(locale, selectedRecipient.nameBn, selectedRecipient.name)}
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {home(`roles.${selectedRecipient.roles[0] as Role}`)} ·{" "}
+                        {home(roleLabelKey(selectedRecipient))} ·{" "}
                         {pick(locale, selectedRecipient.cityBn, selectedRecipient.city)}
                       </p>
                     </div>
@@ -1346,7 +1347,7 @@ export function MixEditor() {
                                     ) : null}
                                   </div>
                                   <p className="truncate text-xs text-muted-foreground">
-                                    {home(`roles.${u.roles[0] as Role}`)} ·{" "}
+                                    {home(roleLabelKey(u))} ·{" "}
                                     {pick(locale, u.cityBn, u.city)} ·{" "}
                                     {u.instruments.slice(0, 2).join(", ")}
                                   </p>
@@ -1420,7 +1421,7 @@ export function MixEditor() {
                                       </span>
                                     </div>
                                     <p className="truncate text-xs text-muted-foreground">
-                                      {home(`roles.${u.roles[0] as Role}`)} ·{" "}
+                                      {home(roleLabelKey(u))} ·{" "}
                                       {pick(locale, u.cityBn, u.city)} ·{" "}
                                       {u.instruments.slice(0, 2).join(", ")}
                                     </p>

@@ -10,6 +10,8 @@ export type Gender = "female" | "male";
 
 export type Musician = {
   id: string;
+  /** musician is the hireable player. agency books a full stage. member is a normal account. */
+  accountKind?: "musician" | "agency" | "member";
   name: string;
   nameBn: string;
   avatarUrl?: string;

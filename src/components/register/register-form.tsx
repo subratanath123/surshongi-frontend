@@ -4,6 +4,7 @@ import { type KeyboardEvent, type ReactNode, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  Building2,
   Camera,
   Check,
   CheckCircle2,
@@ -13,6 +14,7 @@ import {
   Pencil,
   Plus,
   Upload,
+  UserRound,
   Video,
   X,
 } from "lucide-react";
@@ -38,6 +40,7 @@ import {
   PROFILE_BIO_MAX,
   PROFILE_BIO_MIN,
 } from "@/lib/profile-rules";
+import { type AccountKind, accountKindOf } from "@/lib/account-kind";
 import { hireSkills, skillIsOn, toggleSkill } from "@/lib/hire-skills";
 import { youtubeIdFromUrl } from "@/lib/youtube";
 
@@ -151,8 +154,18 @@ function ProfileWizard({
   const [stepIndex, setStepIndex] = useState(0);
   const [maxReached, setMaxReached] = useState(user.profileCompleted ? steps.length - 1 : 0);
   const [showErrors, setShowErrors] = useState(false);
+  const [kind, setKind] = useState<AccountKind | "">(user.profileCompleted ? accountKindOf(user) : "");
 
-  const [role, setRole] = useState<Role>(user.roles[0] ?? "vocalist");
+  const [role, setRole] = useState<Role>(
+    user.roles[0] === "vocalist" ||
+      user.roles[0] === "guitarist" ||
+      user.roles[0] === "percussion" ||
+      user.roles[0] === "flute" ||
+      user.roles[0] === "producer" ||
+      user.roles[0] === "lyricist"
+      ? user.roles[0]
+      : "vocalist",
+  );
   const [gender, setGender] = useState<"female" | "male" | "">(
     user.gender === "female" || user.gender === "male" ? user.gender : "",
   );
@@ -178,40 +191,69 @@ function ProfileWizard({
   const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const step: Step = steps[stepIndex];
+  const activeSteps: Step[] =
+    kind === "member"
+      ? ["basics", "photos", "review"]
+      : kind === "agency" || kind === "musician"
+        ? ["basics", "skills", "photos", "showcase", "review"]
+        : ["basics"];
+  const step: Step = activeSteps[Math.min(stepIndex, activeSteps.length - 1)] ?? "basics";
   const youtubeId = youtubeIdFromUrl(youtube);
   const priceNumber = Number(price.replace(/[^\d]/g, ""));
+  const agencyServices =
+    locale === "bn"
+      ? ["ফুল ব্যান্ড", "সাউন্ড সিস্টেম", "স্টেজ লাইট", "কণ্ঠশিল্পী", "নৃত্য", "উপস্থাপক", "সাজসজ্জা"]
+      : ["Full band", "Sound system", "Stage lights", "Singers", "Dancers", "MC", "Decoration"];
+  const agencyEvents =
+    locale === "bn"
+      ? ["বিয়ে", "কর্পোরেট", "কনসার্ট", "লোকসন্ধ্যা", "জন্মদিন"]
+      : ["Wedding", "Corporate", "Concert", "Folk night", "Birthday"];
 
   function validate(target: Step): Errors {
     const e: Errors = {};
     if (target === "basics") {
+      if (kind !== "musician" && kind !== "agency" && kind !== "member") e.kind = t("errKind");
       if (!name.trim()) e.name = t("errName");
       if (!city.trim()) e.city = t("errCity");
-      if (bio.trim().length < PROFILE_BIO_MIN) e.bio = t("errBio", { min: PROFILE_BIO_MIN });
+      if (bio.trim().length < PROFILE_BIO_MIN) {
+        e.bio = t(kind === "member" ? "errBioMember" : kind === "agency" ? "errBioAgency" : "errBio", {
+          min: PROFILE_BIO_MIN,
+        });
+      }
       const sings =
-        role === "vocalist" ||
-        instruments.some((item) => /vocal|singer|কণ্ঠ/i.test(item));
+        kind === "musician" &&
+        (role === "vocalist" || instruments.some((item) => /vocal|singer|কণ্ঠ/i.test(item)));
       if (sings && gender !== "female" && gender !== "male") e.gender = t("errGender");
     }
-    if (target === "skills") {
+    if (target === "skills" && kind !== "member") {
       if (instruments.length === 0) e.instruments = t("errInstruments");
       if (genres.length === 0) e.genres = t("errGenres");
       if (!(priceNumber > 0)) e.price = t("errPrice");
     }
-    if (target === "photos") {
+    if (target === "photos" && kind !== "member") {
       if (!avatarUrl) e.avatar = t("errAvatar");
     }
-    if (target === "showcase") {
+    if (target === "showcase" && kind !== "member") {
       if (youtube.trim() && !youtubeId) e.youtube = t("badLink");
       if (youtubeId && !youtubeTitle.trim()) e.youtubeTitle = t("errShowcaseTitle");
       if (audioUrl && !audioTitle.trim()) e.audioTitle = t("errShowcaseTitle");
-      if (!youtubeId && !audioUrl && existingShowcaseCount === 0) e.showcase = t("errShowcase");
+      if (kind === "musician" && !youtubeId && !audioUrl && existingShowcaseCount === 0) {
+        e.showcase = t("errShowcase");
+      }
     }
     return e;
   }
 
   const errors = showErrors ? validate(step) : {};
-  const firstInvalid = steps.findIndex((s) => Object.keys(validate(s)).length > 0);
+  const firstInvalid = activeSteps.findIndex((s) => Object.keys(validate(s)).length > 0);
+
+  function chooseKind(nextKind: AccountKind) {
+    setKind(nextKind);
+    setShowErrors(false);
+    setSubmitError("");
+    setStepIndex(0);
+    if (!user.profileCompleted) setMaxReached(0);
+  }
 
   function goTo(index: number) {
     setShowErrors(false);
@@ -249,7 +291,7 @@ function ProfileWizard({
   }
 
   async function publish() {
-    if (firstInvalid !== -1 && firstInvalid < steps.length - 1) {
+    if (firstInvalid !== -1 && firstInvalid < activeSteps.length - 1) {
       goTo(firstInvalid);
       setShowErrors(true);
       return;
@@ -260,14 +302,15 @@ function ProfileWizard({
       const res = await mutateCommunity<{ error?: string }>({
         action: "completeProfile",
         userId: user.id,
+        accountKind: kind,
         name: name.trim(),
         city: city.trim(),
-        role,
-        gender: gender || undefined,
+        role: kind === "musician" ? role : "",
+        gender: kind === "musician" ? gender || undefined : undefined,
         bio: bio.trim(),
-        instruments: instruments.join(", "),
-        genres: genres.join(", "),
-        price: String(priceNumber),
+        instruments: kind === "member" ? "" : instruments.join(", "),
+        genres: kind === "member" ? "" : genres.join(", "),
+        price: kind === "member" ? "" : String(priceNumber || ""),
         phone: phone.trim(),
         bkashNumber: bkashNumber.trim(),
         isPrivate,
@@ -308,12 +351,12 @@ function ProfileWizard({
             style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }}
           />
         </div>
-        <ol className="mt-4 grid grid-cols-5 gap-1.5">
-          {steps.map((s, i) => {
-            const blockedFrom = firstInvalid === -1 ? steps.length : firstInvalid;
+        <ol className={`mt-4 grid gap-1.5 ${activeSteps.length <= 3 ? "grid-cols-3" : "grid-cols-5"}`}>
+          {activeSteps.map((s, i) => {
+            const blockedFrom = firstInvalid === -1 ? activeSteps.length : firstInvalid;
             const done =
               i !== stepIndex &&
-              i < steps.length - 1 &&
+              i < activeSteps.length - 1 &&
               i <= maxReached &&
               i < blockedFrom &&
               Object.keys(validate(s)).length === 0;
@@ -355,12 +398,89 @@ function ProfileWizard({
       </div>
 
       <div className="px-5 py-6">
-        <h3 className="font-display text-2xl">{t(`step_${step}_title`)}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{t(`step_${step}_sub`)}</p>
+        <h3 className="font-display text-2xl">
+          {kind === "agency" && step === "basics"
+            ? t("step_basics_title_agency")
+            : kind === "member" && step === "basics"
+              ? t("step_basics_title_member")
+              : kind === "agency" && step === "skills"
+                ? t("step_skills_title_agency")
+                : kind === "agency" && step === "showcase"
+                  ? t("step_showcase_title_agency")
+                  : t(`step_${step}_title`)}
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {kind === "agency" && step === "basics"
+            ? t("step_basics_sub_agency")
+            : kind === "member" && step === "basics"
+              ? t("step_basics_sub_member")
+              : kind === "agency" && step === "skills"
+                ? t("step_skills_sub_agency")
+                : kind === "agency" && step === "showcase"
+                  ? t("step_showcase_sub_agency")
+                  : t(`step_${step}_sub`)}
+        </p>
 
         <div className="mt-6 space-y-5">
           {step === "basics" ? (
             <>
+              <Field label={t("kindTitle")} required error={errors.kind}>
+                <div className="grid gap-2">
+                  <button
+                    type="button"
+                    aria-pressed={kind === "agency"}
+                    onClick={() => chooseKind("agency")}
+                    className={
+                      kind === "agency"
+                        ? "flex items-start gap-3 rounded-lg border border-primary bg-primary/10 px-4 py-4 text-left"
+                        : "flex items-start gap-3 rounded-lg border border-border bg-white px-4 py-4 text-left hover:border-primary"
+                    }
+                  >
+                    <Building2 className="mt-0.5 size-5 shrink-0 text-primary" />
+                    <span>
+                      <span className="block text-sm font-semibold text-foreground">{t("kindAgency")}</span>
+                      <span className="mt-1 block text-xs leading-5 text-muted-foreground">{t("kindAgencyBody")}</span>
+                    </span>
+                    {kind === "agency" ? <CheckCircle2 className="ml-auto size-4 shrink-0 text-primary" /> : null}
+                  </button>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      aria-pressed={kind === "musician"}
+                      onClick={() => chooseKind("musician")}
+                      className={
+                        kind === "musician"
+                          ? "flex items-start gap-3 rounded-lg border border-primary bg-primary/10 px-4 py-3 text-left"
+                          : "flex items-start gap-3 rounded-lg border border-border bg-white px-4 py-3 text-left hover:border-primary"
+                      }
+                    >
+                      <Music className="mt-0.5 size-5 shrink-0 text-primary" />
+                      <span>
+                        <span className="block text-sm font-semibold text-foreground">{t("kindMusician")}</span>
+                        <span className="mt-1 block text-xs leading-5 text-muted-foreground">{t("kindMusicianBody")}</span>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={kind === "member"}
+                      onClick={() => chooseKind("member")}
+                      className={
+                        kind === "member"
+                          ? "flex items-start gap-3 rounded-lg border border-primary bg-primary/10 px-4 py-3 text-left"
+                          : "flex items-start gap-3 rounded-lg border border-border bg-white px-4 py-3 text-left hover:border-primary"
+                      }
+                    >
+                      <UserRound className="mt-0.5 size-5 shrink-0 text-primary" />
+                      <span>
+                        <span className="block text-sm font-semibold text-foreground">{t("kindMember")}</span>
+                        <span className="mt-1 block text-xs leading-5 text-muted-foreground">{t("kindMemberBody")}</span>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </Field>
+              {kind === "musician" ? (
+              <>
               <Field
                 label={t("gender")}
                 required={
@@ -411,13 +531,20 @@ function ProfileWizard({
                   ))}
                 </div>
               </Field>
+              </>
+              ) : null}
               <div className="grid gap-5 sm:grid-cols-2">
-                <Field label={t("name")} required error={errors.name} htmlFor="reg-name">
+                <Field
+                  label={kind === "agency" ? t("agencyName") : t("name")}
+                  required
+                  error={errors.name}
+                  htmlFor="reg-name"
+                >
                   <input
                     id="reg-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder={t("namePlaceholder")}
+                    placeholder={kind === "agency" ? t("agencyNamePlaceholder") : t("namePlaceholder")}
                     className={`${inputClass} ${borderFor(errors.name)}`}
                   />
                 </Field>
@@ -432,7 +559,7 @@ function ProfileWizard({
                 </Field>
               </div>
               <Field
-                label={t("bio")}
+                label={kind === "agency" ? t("agencyBio") : kind === "member" ? t("memberBio") : t("bio")}
                 required
                 error={errors.bio}
                 htmlFor="reg-bio"
@@ -447,7 +574,13 @@ function ProfileWizard({
                   maxLength={PROFILE_BIO_MAX}
                   onChange={(e) => setBio(e.target.value)}
                   rows={4}
-                  placeholder={t("bioPlaceholder")}
+                  placeholder={
+                    kind === "agency"
+                      ? t("agencyBioPlaceholder")
+                      : kind === "member"
+                        ? t("memberBioPlaceholder")
+                        : t("bioPlaceholder")
+                  }
                   className={`${inputClass} h-auto py-3 leading-6 ${borderFor(errors.bio)}`}
                 />
               </Field>
@@ -501,6 +634,7 @@ function ProfileWizard({
 
           {step === "skills" ? (
             <>
+              {kind === "musician" ? (
               <Field label={t("hireSkills")} hint={t("hireSkillsHint")}>
                 <div className="flex flex-wrap gap-2">
                   {hireSkills.map((skill) => {
@@ -523,32 +657,53 @@ function ProfileWizard({
                   })}
                 </div>
               </Field>
-              <Field label={t("instruments")} required error={errors.instruments} hint={t("chipHint")}>
+              ) : null}
+              <Field
+                label={kind === "agency" ? t("agencyServices") : t("instruments")}
+                required
+                error={errors.instruments}
+                hint={kind === "agency" ? t("agencyServicesHint") : t("chipHint")}
+              >
                 <ChipInput
                   id="reg-instruments"
                   values={instruments}
                   onChange={setInstruments}
-                  suggestions={[
-                    ...new Set([
-                      ...hireSkills.map((skill) => skill.token),
-                      ...INSTRUMENT_SUGGESTIONS[role],
-                    ]),
-                  ]}
-                  placeholder={t("instrumentsPlaceholder")}
+                  suggestions={
+                    kind === "agency"
+                      ? agencyServices
+                      : [
+                          ...new Set([
+                            ...hireSkills.map((skill) => skill.token),
+                            ...INSTRUMENT_SUGGESTIONS[role],
+                          ]),
+                        ]
+                  }
+                  placeholder={kind === "agency" ? t("agencyServicesPlaceholder") : t("instrumentsPlaceholder")}
                   invalid={Boolean(errors.instruments)}
                 />
               </Field>
-              <Field label={t("genres")} required error={errors.genres} hint={t("chipHint")}>
+              <Field
+                label={kind === "agency" ? t("agencyEvents") : t("genres")}
+                required
+                error={errors.genres}
+                hint={t("chipHint")}
+              >
                 <ChipInput
                   id="reg-genres"
                   values={genres}
                   onChange={setGenres}
-                  suggestions={GENRE_SUGGESTIONS}
-                  placeholder={t("genresPlaceholder")}
+                  suggestions={kind === "agency" ? agencyEvents : GENRE_SUGGESTIONS}
+                  placeholder={kind === "agency" ? t("agencyEventsPlaceholder") : t("genresPlaceholder")}
                   invalid={Boolean(errors.genres)}
                 />
               </Field>
-              <Field label={t("price")} required error={errors.price} htmlFor="reg-price" hint={t("priceHint")}>
+              <Field
+                label={kind === "agency" ? t("agencyPrice") : t("price")}
+                required
+                error={errors.price}
+                htmlFor="reg-price"
+                hint={kind === "agency" ? t("agencyPriceHint") : t("priceHint")}
+              >
                 <div className="relative sm:max-w-xs">
                   <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm text-muted-foreground">
                     ৳
@@ -812,9 +967,9 @@ function ProfileWizard({
 
           {step === "review" ? (
             <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-white">
-              <ReviewRow title={t("step_basics")} onEdit={() => goTo(0)}>
+              <ReviewRow title={t("step_basics")} onEdit={() => goTo(activeSteps.indexOf("basics"))}>
                 <p className="font-medium text-foreground">
-                  {name} · {home(`roles.${role}`)} · {city} ·{" "}
+                  {name} · {kind === "agency" ? t("kindAgency") : kind === "member" ? t("kindMember") : home(`roles.${role}`)} · {city} ·{" "}
                   {isPrivate
                     ? locale === "bn"
                       ? "🔒 প্রাইভেট"
@@ -825,7 +980,8 @@ function ProfileWizard({
                 </p>
                 <p className="mt-1 line-clamp-3">{bio}</p>
               </ReviewRow>
-              <ReviewRow title={t("step_skills")} onEdit={() => goTo(1)}>
+              {activeSteps.includes("skills") ? (
+              <ReviewRow title={t("step_skills")} onEdit={() => goTo(activeSteps.indexOf("skills"))}>
                 <p>{instruments.join(", ")}</p>
                 <p className="mt-1">{genres.join(", ")}</p>
                 <p className="mt-1 font-medium text-foreground">
@@ -839,13 +995,15 @@ function ProfileWizard({
                   </p>
                 ) : null}
               </ReviewRow>
-              <ReviewRow title={t("step_photos")} onEdit={() => goTo(2)}>
+              ) : null}
+              <ReviewRow title={t("step_photos")} onEdit={() => goTo(activeSteps.indexOf("photos"))}>
                 <div className="flex items-center gap-3">
                   <UserAvatar src={avatarUrl} name={name} className="size-10" textClassName="text-sm" />
                   <span>{coverUrl ? t("coverUploaded") : t("coverDefault")}</span>
                 </div>
               </ReviewRow>
-              <ReviewRow title={t("step_showcase")} onEdit={() => goTo(3)}>
+              {activeSteps.includes("showcase") ? (
+              <ReviewRow title={t("step_showcase")} onEdit={() => goTo(activeSteps.indexOf("showcase"))}>
                 <ul className="space-y-1">
                   {youtubeId ? (
                     <li className="flex items-center gap-2">
@@ -864,6 +1022,7 @@ function ProfileWizard({
                   ) : null}
                 </ul>
               </ReviewRow>
+              ) : null}
             </div>
           ) : null}
         </div>

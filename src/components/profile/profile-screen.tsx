@@ -38,7 +38,8 @@ import { DefaultCoverArt } from "@/components/profile/default-cover-art";
 import { SelfieVerify } from "@/components/profile/selfie-verify";
 import { UserAvatar, VerifiedMark } from "@/components/profile/user-avatar";
 import { Button } from "@/components/ui/button";
-import { pick, type Role } from "@/data/catalog";
+import { accountKindOf, roleLabelKey } from "@/lib/account-kind";
+import { pick } from "@/data/catalog";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
   mutateCommunity,
@@ -142,7 +143,8 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
   }
 
   const name = pick(locale, profile.nameBn, profile.name);
-  const role = home(`roles.${profile.roles[0] as Role}`);
+  const kind = accountKindOf(profile);
+  const role = home(roleLabelKey(profile));
   const genderLabel =
     profile.gender === "female"
       ? home("genderFemale")
@@ -1142,13 +1144,17 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
 
       <aside className="space-y-4 rounded-xl border border-border bg-white p-5 shadow-sm lg:sticky lg:top-24">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold">{t("hireCardTitle")}</h2>
+          <h2 className="text-sm font-semibold">
+            {kind === "member" ? t("memberCardTitle") : kind === "agency" ? t("agencyCardTitle") : t("hireCardTitle")}
+          </h2>
           <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
             <ShieldCheck className="size-3.5" />
             {locale === "bn" ? "ট্রাস্ট পলিসি" : "Trust Policy"}
           </span>
         </div>
-        <p className="text-sm leading-6 text-muted-foreground">{t("hire")}</p>
+        <p className="text-sm leading-6 text-muted-foreground">
+          {kind === "member" ? t("memberAside") : kind === "agency" ? t("agencyAside") : t("hire")}
+        </p>
 
         {/* Owner's Optional Phone & bKash Payment Settings */}
         {isOwner ? (
@@ -1477,7 +1483,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
           </div>
         ) : null}
 
-        {profile.id !== activeUserId ? (
+        {profile.id !== activeUserId && kind !== "member" ? (
           <>
             <form
               onSubmit={async (e) => {
@@ -1669,7 +1675,11 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                     : "Confirm Order"}
               </Button>
             </form>
+          </>
+        ) : null}
 
+        {profile.id !== activeUserId ? (
+          <>
             <Button
               type="button"
               variant="outline"

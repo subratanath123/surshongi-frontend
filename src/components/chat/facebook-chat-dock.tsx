@@ -27,7 +27,8 @@ import {
   MediaAttachmentPreview,
 } from "@/components/media/media-attachment-preview";
 import { PaymentCheck } from "@/components/orders/payment-check";
-import { pick, type Role } from "@/data/catalog";
+import { roleLabelKey } from "@/lib/account-kind";
+import { pick } from "@/data/catalog";
 import { Link } from "@/i18n/navigation";
 import {
   clearChatPostRef,
@@ -114,7 +115,7 @@ export function FacebookChatDock() {
             key={win.musicianId}
             peerId={peer.id}
             peerName={pick(locale, peer.nameBn, peer.name)}
-            peerRole={home(`roles.${peer.roles[0] as Role}`)}
+            peerRole={home(roleLabelKey(peer))}
             peerCity={pick(locale, peer.cityBn, peer.city)}
             peerDefaultPrice={peer.priceFromBdt ?? 4000}
             peerPhone={peer.phone}
