@@ -96,7 +96,10 @@ export function SelfieVerify({
     setError("");
     try {
       const uploaded = await uploadAudioFile(file);
-      const result = await mutateCommunity({ action: "verifySelfie", avatarUrl: uploaded.url });
+      const result = await mutateCommunity<{ error?: string }>({
+        action: "verifySelfie",
+        avatarUrl: uploaded.url,
+      });
       if (result.error) {
         setError(result.error);
         return;
