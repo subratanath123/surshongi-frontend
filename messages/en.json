@@ -4,6 +4,11 @@
     "title": "SurShongi — Your voice. Their strings. One song.",
     "description": "A home for musicians in Bangladesh to find each other and collaborate remotely. Vocals, guitar, tabla, mixing, and everything in between."
   },
+  "Pwa": {
+    "install": "Add SurShongi to your home screen",
+    "add": "Install",
+    "later": "Not now"
+  },
   "Nav": {
     "brand": "SurShongi",
     "home": "SurShongi home",

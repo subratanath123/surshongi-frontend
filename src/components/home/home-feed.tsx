@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Globe,
   Heart,
@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { AudioPlayer } from "@/components/media/audio-player";
 import { RichText, RichTextField } from "@/components/media/rich-text";
 import { StarRating } from "@/components/media/star-rating";
@@ -296,6 +297,8 @@ export function HomeFeed() {
   const t = useTranslations("Home");
   const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlQuery = searchParams.get("q")?.trim() ?? "";
   const { db, hydrated } = useCommunityStore();
   const currentUser = useCurrentUser();
 
@@ -452,13 +455,42 @@ export function HomeFeed() {
     return () => cancelAnimationFrame(frame);
   }, [searchActive, vectorQuery]);
 
+  const appliedUrlQuery = useRef<string | null>(null);
+
+  const runSearch = useCallback(async (q: string) => {
+    const seq = ++searchSeq.current;
+    setSearchingVector(true);
+    setVectorQuery(q);
+    try {
+      const res = await fetch(apiUrl(`/community-search?q=${encodeURIComponent(q)}`), {
+        cache: "no-store",
+      });
+      const data = (await res.json()) as { hits?: SemanticMusicianHit[] };
+      if (seq !== searchSeq.current) return;
+      setVectorHits(Array.isArray(data.hits) ? data.hits : []);
+    } catch {
+      if (seq === searchSeq.current) setVectorHits([]);
+    } finally {
+      if (seq === searchSeq.current) setSearchingVector(false);
+    }
+  }, []);
+
   function clearSearch() {
     searchSeq.current += 1;
+    appliedUrlQuery.current = "";
     setQuery("");
     setVectorHits(null);
     setVectorQuery("");
     setSearchingVector(false);
+    if (urlQuery) router.replace("/");
   }
+
+  useEffect(() => {
+    if (!urlQuery || appliedUrlQuery.current === urlQuery) return;
+    appliedUrlQuery.current = urlQuery;
+    setQuery(urlQuery);
+    void runSearch(urlQuery);
+  }, [urlQuery, runSearch]);
 
   const composerRef = useRef<HTMLDivElement>(null);
 
@@ -482,21 +514,9 @@ export function HomeFeed() {
       clearSearch();
       return;
     }
-    const seq = ++searchSeq.current;
-    setSearchingVector(true);
-    setVectorQuery(q);
-    try {
-      const res = await fetch(apiUrl(`/community-search?q=${encodeURIComponent(q)}`), {
-        cache: "no-store",
-      });
-      const data = (await res.json()) as { hits?: SemanticMusicianHit[] };
-      if (seq !== searchSeq.current) return;
-      setVectorHits(Array.isArray(data.hits) ? data.hits : []);
-    } catch {
-      if (seq === searchSeq.current) setVectorHits([]);
-    } finally {
-      if (seq === searchSeq.current) setSearchingVector(false);
-    }
+    appliedUrlQuery.current = q;
+    router.replace({ pathname: "/", query: { q } });
+    await runSearch(q);
   }
 
   async function handleCreatePost(event: FormEvent) {
@@ -1171,7 +1191,7 @@ function PostCard({
   return (
     <article className="overflow-hidden rounded-lg border border-border bg-card shadow-md">
       {/* Facebook-style Post Header */}
-      <div className="flex items-start justify-between gap-3 px-4 pt-4">
+      <div className="flex flex-col gap-3 px-4 pt-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <Link href={`/u/${author.id}`} className="shrink-0">
             <UserAvatar
@@ -1186,7 +1206,7 @@ function PostCard({
             <div className="flex flex-wrap items-center gap-1.5">
               <Link
                 href={`/u/${author.id}`}
-                className="truncate text-[15px] font-semibold text-foreground hover:underline"
+                className="text-[15px] font-semibold break-words text-foreground hover:underline"
               >
                 {authorName}
               </Link>
@@ -1218,24 +1238,24 @@ function PostCard({
                 </>
               ) : null}
             </div>
-            <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-              <span>{t(`roles.${author.roles[0] as Role}`)}</span>
-              <span>·</span>
-              <span>{pick(locale, author.cityBn, author.city)}</span>
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
+              <span className="whitespace-nowrap">{t(`roles.${author.roles[0] as Role}`)}</span>
+              <span aria-hidden="true">·</span>
+              <span className="whitespace-nowrap">{pick(locale, author.cityBn, author.city)}</span>
               {timeLabel ? (
                 <>
-                  <span>·</span>
-                  <span>{timeLabel}</span>
+                  <span aria-hidden="true">·</span>
+                  <span className="whitespace-nowrap">{timeLabel}</span>
                 </>
               ) : null}
-              <span>·</span>
-              <Globe className="size-3" aria-hidden />
+              <span aria-hidden="true">·</span>
+              <Globe className="size-3 shrink-0" aria-hidden />
             </div>
           </div>
         </div>
 
         {/* Category & Role Badge + Owner Edit Trigger */}
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
           {post.priceBdt ? (
             <span className="rounded-lg bg-primary/15 px-2.5 py-1 text-xs font-bold text-primary">
               ৳{formatNumber(post.priceBdt, locale)}
@@ -1410,12 +1430,12 @@ function PostCard({
       ) : (
         /* Post Title & Body */
         <div className="px-4 pt-3 pb-3">
-          <h3 className="text-[16px] font-semibold leading-snug text-foreground">
+          <h3 className="text-[16px] font-semibold leading-snug break-words text-foreground">
             {pick(locale, post.titleBn, post.title)}
           </h3>
           <RichText
             text={fullText}
-            className={`mt-1.5 space-y-1 text-[14.5px] leading-relaxed text-[#222325] ${
+            className={`mt-1.5 space-y-1 text-[14.5px] leading-relaxed break-words text-[#222325] ${
               !expanded && isLong ? "line-clamp-6" : ""
             }`}
           />

@@ -7,18 +7,12 @@ import { mutateCommunity } from "@/lib/community-store";
 
 const FIELDS = [
   {
-    key: "twitterUrl",
-    label: "linkTwitter",
-    hint: "linkTwitterHint",
-    placeholder: "https://x.com/yourname",
-    hosts: ["twitter.com", "x.com"],
-  },
-  {
-    key: "facebookUrl",
-    label: "linkFacebook",
-    hint: "linkFacebookHint",
-    placeholder: "https://facebook.com/yourpage",
-    hosts: ["facebook.com", "fb.com"],
+    key: "youtubeChannelUrl",
+    label: "linkYoutube",
+    hint: "linkYoutubeHint",
+    placeholder: "https://youtube.com/@yourchannel",
+    hosts: ["youtube.com", "youtu.be", "music.youtube.com"],
+    className: "border-transparent bg-[#222325] text-white hover:bg-[#111]",
   },
   {
     key: "spotifyUrl",
@@ -26,13 +20,23 @@ const FIELDS = [
     hint: "linkSpotifyHint",
     placeholder: "https://open.spotify.com/artist/…",
     hosts: ["spotify.com"],
+    className: "border-[#1dbf73] bg-white text-[#222325] hover:bg-[#e8f8ef]",
   },
   {
-    key: "youtubeChannelUrl",
-    label: "linkYoutube",
-    hint: "linkYoutubeHint",
-    placeholder: "https://youtube.com/@yourchannel",
-    hosts: ["youtube.com", "youtu.be", "music.youtube.com"],
+    key: "facebookUrl",
+    label: "linkFacebook",
+    hint: "linkFacebookHint",
+    placeholder: "https://facebook.com/yourpage",
+    hosts: ["facebook.com", "fb.com"],
+    className: "border-[#e4e5e7] bg-white text-[#222325] hover:border-[#1dbf73]",
+  },
+  {
+    key: "twitterUrl",
+    label: "linkTwitter",
+    hint: "linkTwitterHint",
+    placeholder: "https://x.com/yourname",
+    hosts: ["twitter.com", "x.com"],
+    className: "border-[#e4e5e7] bg-white text-[#222325] hover:border-[#1dbf73]",
   },
 ] as const;
 
@@ -40,6 +44,7 @@ type LinkKey = (typeof FIELDS)[number]["key"];
 
 export function ProfileLinks({ profile, isOwner }: { profile: Musician; isOwner: boolean }) {
   const t = useTranslations("Profile");
+  const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [savedNote, setSavedNote] = useState(false);
@@ -81,6 +86,7 @@ export function ProfileLinks({ profile, isOwner }: { profile: Musician; isOwner:
         return;
       }
       setSavedNote(true);
+      setEditing(false);
     } catch (ex) {
       setError(ex instanceof Error ? ex.message : t("linkInvalid"));
     } finally {
@@ -90,29 +96,51 @@ export function ProfileLinks({ profile, isOwner }: { profile: Musician; isOwner:
 
   if (!isOwner && saved.length === 0) return null;
 
-  if (!isOwner) {
+  if (!editing) {
     return (
       <div className="mt-4">
-        <p className="text-xs font-semibold text-[#222325]">{t("linksTitle")}</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {saved.map((field) => (
-            <a
-              key={field.key}
-              href={field.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex h-8 items-center rounded-full border border-[#e4e5e7] bg-white px-3 text-xs font-semibold text-[#222325] hover:border-[#1dbf73]"
-            >
-              {t(field.label)}
-            </a>
-          ))}
-        </div>
+        {saved.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {saved.map((field) => (
+              <a
+                key={field.key}
+                href={field.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex h-10 items-center rounded-full border px-4 text-sm font-semibold ${field.className}`}
+              >
+                {t(field.label)}
+              </a>
+            ))}
+            {isOwner ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setError("");
+                  setEditing(true);
+                }}
+                className="inline-flex h-10 items-center rounded-full px-3 text-sm font-semibold text-[#1dbf73] hover:bg-[#e8f8ef]"
+              >
+                {t("linksEdit")}
+              </button>
+            ) : null}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="inline-flex h-10 items-center rounded-full border border-dashed border-[#1dbf73] px-4 text-sm font-semibold text-[#1dbf73] hover:bg-[#e8f8ef]"
+          >
+            {t("linksTitle")}
+          </button>
+        )}
+        {savedNote ? <p className="mt-2 text-xs font-medium text-[#1dbf73]">{t("linksSaved")}</p> : null}
       </div>
     );
   }
 
   return (
-    <form onSubmit={(event) => void save(event)} className="mt-4 max-w-md rounded-xl border border-[#e4e5e7] bg-white p-4">
+    <form onSubmit={(event) => void save(event)} className="mt-4 w-full max-w-lg rounded-xl border border-[#e4e5e7] bg-white p-4">
       <p className="text-sm font-semibold text-[#222325]">{t("linksTitle")}</p>
       <p className="mt-1 text-xs leading-5 text-muted-foreground">{t("linksHint")}</p>
       <div className="mt-3 space-y-3">
@@ -134,14 +162,26 @@ export function ProfileLinks({ profile, isOwner }: { profile: Musician; isOwner:
         ))}
       </div>
       {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
-      {savedNote ? <p className="mt-2 text-xs font-medium text-[#1dbf73]">{t("linksSaved")}</p> : null}
-      <button
-        type="submit"
-        disabled={saving}
-        className="mt-3 h-8 rounded-full bg-[#1dbf73] px-4 text-xs font-semibold text-white disabled:opacity-60"
-      >
-        {saving ? "…" : t("linksSave")}
-      </button>
+      <div className="mt-3 flex items-center gap-2">
+        <button
+          type="submit"
+          disabled={saving}
+          className="h-8 rounded-full bg-[#1dbf73] px-4 text-xs font-semibold text-white disabled:opacity-60"
+        >
+          {saving ? "…" : t("linksSave")}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setDraft(draftFrom(profile));
+            setError("");
+            setEditing(false);
+          }}
+          className="h-8 rounded-full px-3 text-xs font-semibold text-muted-foreground hover:text-foreground"
+        >
+          {t("linksCancel")}
+        </button>
+      </div>
     </form>
   );
 }

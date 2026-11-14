@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Scissors, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Mark } from "@/components/brand/mark";
@@ -8,6 +11,8 @@ import { Link } from "@/i18n/navigation";
 
 export function SiteHeader() {
   const t = useTranslations("Nav");
+  const home = useTranslations("Home");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-white">
@@ -22,13 +27,15 @@ export function SiteHeader() {
         <HeaderSearch />
 
         <nav className="ml-auto flex items-center gap-1.5 sm:gap-2" aria-label={t("brand")}>
-          <Link
-            href="/find"
+          <button
+            type="button"
             className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground md:hidden"
-            aria-label={t("find")}
+            aria-label={home("search")}
+            aria-expanded={searchOpen}
+            onClick={() => setSearchOpen((open) => !open)}
           >
             <Search className="size-4" aria-hidden />
-          </Link>
+          </button>
           <Link
             href="/editor"
             className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -41,6 +48,15 @@ export function SiteHeader() {
           <HeaderAuthPill />
         </nav>
       </div>
+      {searchOpen ? (
+        <div className="border-t border-border px-4 py-3 md:hidden">
+          <HeaderSearch
+            className="block"
+            autoFocus
+            onSubmitted={() => setSearchOpen(false)}
+          />
+        </div>
+      ) : null}
     </header>
   );
 }

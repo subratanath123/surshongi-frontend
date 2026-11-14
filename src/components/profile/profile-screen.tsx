@@ -410,7 +410,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
             ) : null}
 
             {isOwner && !repositioningCover ? (
-              <div className="absolute right-4 bottom-4 flex flex-wrap items-center justify-end gap-2">
+              <div className="absolute inset-x-3 bottom-3 flex flex-wrap items-center justify-end gap-2">
                 {coverMenu === "source" ? (
                   <div className="flex w-full justify-end gap-2 sm:w-auto">
                     <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-white px-3.5 py-2 text-xs font-semibold text-foreground shadow-md hover:border-primary">
@@ -465,15 +465,15 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
             </div>
           ) : null}
 
-          <div className="relative z-10 px-5 pt-4 pb-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
+          <div className="relative z-10 px-4 pt-4 pb-6 sm:px-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex min-w-0 flex-1 flex-col items-start gap-4 sm:flex-row sm:items-start">
                 <div className="relative z-10 inline-block shrink-0">
                   <UserAvatar
                     src={profile.avatarUrl}
                     name={name}
-                    className="size-24 sm:size-28"
-                    textClassName="text-3xl"
+                    className="size-20 sm:size-28"
+                    textClassName="text-2xl sm:text-3xl"
                     verified={profile.selfieVerified}
                     verifiedLabel={t("selfieVerified")}
                   />
@@ -491,12 +491,12 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                   ) : null}
                 </div>
 
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm text-muted-foreground">
                     {role}
                     {genderLabel ? ` · ${genderLabel}` : ""} · {pick(locale, profile.cityBn, profile.city)}
                   </p>
-                  <h1 className="mt-0.5 flex items-center gap-2 font-display text-4xl">
+                  <h1 className="mt-0.5 flex flex-wrap items-center gap-2 font-display text-3xl leading-tight break-words sm:text-4xl">
                     {name}
                     {profile.selfieVerified ? <VerifiedMark label={t("selfieVerified")} className="size-8" /> : null}
                   </h1>
@@ -770,39 +770,49 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
           ) : null}
 
           {collectionItems.length === 0 ? (
-            <p className="mt-4 border border-border bg-card p-4 text-sm text-muted-foreground">
+            <p className="mt-4 rounded-2xl border border-dashed border-border bg-[#f7fbf8] p-8 text-sm text-muted-foreground">
               {t("noVideo")}
             </p>
           ) : (
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {collectionItems.map((item) => {
+            <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {collectionItems.map((item, index) => {
                 const itemTitle = pick(locale, item.titleBn, item.title);
+                const featured = index === 0;
+                const youtube = item.kind === "youtube" && item.youtubeId;
                 return (
-                  <div
+                  <article
                     key={item.id}
-                    className="flex flex-col justify-between rounded-xl border border-border bg-card p-4 shadow-md"
+                    className={
+                      featured
+                        ? "overflow-hidden rounded-2xl border border-[#222325] bg-[#16181d] text-white shadow-[0_18px_40px_rgba(17,17,17,0.16)] lg:col-span-2"
+                        : "overflow-hidden rounded-2xl border border-border bg-white shadow-sm"
+                    }
                   >
-                    <div>
-                      <div className="mb-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                        <span className="inline-flex items-center gap-1 font-medium text-primary">
-                          {item.kind === "youtube" ? (
-                            <Video className="size-3.5" />
-                          ) : (
-                            <Music className="size-3.5" />
-                          )}
-                          {item.kind === "youtube" ? "YouTube" : "Audio"}
-                        </span>
-                        <span>{item.duration}</span>
-                      </div>
-                      <h3 className="mb-2 text-sm font-semibold">{itemTitle}</h3>
-                      {item.kind === "youtube" && item.youtubeId ? (
-                        <YoutubePlayer videoId={item.youtubeId} title={itemTitle} />
-                      ) : null}
-                      {item.kind === "audio" && item.audioSrc ? (
+                    {youtube ? (
+                      <YoutubePlayer videoId={item.youtubeId!} title={itemTitle} flush />
+                    ) : item.kind === "audio" && item.audioSrc ? (
+                      <div className={featured ? "bg-[#16181d] p-4 sm:p-6" : "bg-[#f3fbf6] p-4"}>
+                        <div className="mb-3 flex h-16 items-end gap-1" aria-hidden>
+                          {[18, 32, 24, 48, 36, 58, 28, 44, 22, 40, 16, 34].map((height, bar) => (
+                            <span
+                              key={bar}
+                              className="w-1.5 rounded-full bg-[#1dbf73]"
+                              style={{ height, opacity: featured ? 0.9 : 0.75 }}
+                            />
+                          ))}
+                        </div>
                         <AudioPlayer src={item.audioSrc} title={itemTitle} />
-                      ) : null}
+                      </div>
+                    ) : null}
+                    <div className={featured ? "flex items-center justify-between gap-3 px-4 py-3.5 sm:px-5" : "px-4 py-3"}>
+                      <h3 className={featured ? "font-display text-xl leading-tight" : "text-sm font-semibold text-[#222325]"}>
+                        {itemTitle}
+                      </h3>
+                      <span className={featured ? "shrink-0 text-xs font-semibold text-[#1dbf73]" : "shrink-0 text-xs font-medium text-muted-foreground"}>
+                        {item.kind === "youtube" ? "YouTube" : "Audio"}
+                      </span>
                     </div>
-                  </div>
+                  </article>
                 );
               })}
             </div>

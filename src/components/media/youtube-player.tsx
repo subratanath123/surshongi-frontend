@@ -7,15 +7,16 @@ import { Play } from "lucide-react";
 type YoutubePlayerProps = {
   videoId: string;
   title: string;
+  flush?: boolean;
 };
 
-export function YoutubePlayer({ videoId, title }: YoutubePlayerProps) {
+export function YoutubePlayer({ videoId, title, flush = false }: YoutubePlayerProps) {
   const [started, setStarted] = useState(false);
 
   if (started) {
     return (
       <iframe
-        className="aspect-video w-full rounded-lg bg-black"
+        className={flush ? "aspect-video w-full bg-black" : "aspect-video w-full rounded-lg bg-black"}
         src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`}
         title={title}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -29,14 +30,18 @@ export function YoutubePlayer({ videoId, title }: YoutubePlayerProps) {
     <button
       type="button"
       onClick={() => setStarted(true)}
-      className="relative block aspect-video w-full overflow-hidden rounded-lg border border-border bg-white"
+      className={
+        flush
+          ? "relative block aspect-video w-full overflow-hidden bg-black"
+          : "relative block aspect-video w-full overflow-hidden rounded-lg border border-border bg-white"
+      }
     >
       <Image
         src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
         alt=""
         fill
         sizes="(max-width: 1024px) 100vw, 960px"
-        className="object-cover"
+        className="object-cover scale-125"
       />
       <span className="absolute inset-0 grid place-items-center bg-black/20">
         <span className="grid size-16 place-items-center rounded-full bg-primary text-primary-foreground shadow-xl shadow-[#ff5500]/30 transition-transform hover:scale-105">
