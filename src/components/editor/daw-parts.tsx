@@ -75,13 +75,13 @@ export const ClipView = memo(function ClipView({
 
   return (
     <div
-      className={`absolute overflow-hidden rounded-xl border select-none ${selected ? "border-white shadow-[0_0_0_1px_white]" : "border-white/15"}`}
+      className={`absolute touch-none overflow-hidden rounded-xl border select-none ${selected ? "border-[#1dbf73] shadow-[0_0_0_1px_#1dbf73]" : "border-[#222325]/15"}`}
       style={{
         left: clip.offset * pps,
         top: CLIP_PAD,
         width,
         height,
-        background: `color-mix(in srgb, ${color} 18%, #0b0b0b)`,
+        background: `color-mix(in srgb, ${color} 22%, #ffffff)`,
       }}
     >
       <div
@@ -89,7 +89,7 @@ export const ClipView = memo(function ClipView({
         onPointerDown={(e) => onPointerDown(e, "move")}
       >
         <div
-          className="truncate px-2.5 py-0.5 text-[11px] font-medium text-white/90"
+          className="truncate px-2.5 py-0.5 text-[11px] font-medium text-[#222325]"
           style={{ background: `color-mix(in srgb, ${color} 45%, transparent)` }}
         >
           {clip.name}
@@ -98,36 +98,36 @@ export const ClipView = memo(function ClipView({
         <svg className="pointer-events-none absolute inset-0" width={width} height={height}>
           {fadeInPx > 0 ? (
             <>
-              <polygon points={`0,0 ${fadeInPx},0 0,${height}`} fill="rgba(0,0,0,0.5)" />
-              <line x1={0} y1={height} x2={fadeInPx} y2={0} stroke="white" strokeOpacity={0.6} />
+              <polygon points={`0,0 ${fadeInPx},0 0,${height}`} fill="rgba(255,255,255,0.72)" />
+              <line x1={0} y1={height} x2={fadeInPx} y2={0} stroke="#222325" strokeOpacity={0.45} />
             </>
           ) : null}
           {fadeOutPx > 0 ? (
             <>
-              <polygon points={`${width - fadeOutPx},0 ${width},0 ${width},${height}`} fill="rgba(0,0,0,0.5)" />
-              <line x1={width - fadeOutPx} y1={0} x2={width} y2={height} stroke="white" strokeOpacity={0.6} />
+              <polygon points={`${width - fadeOutPx},0 ${width},0 ${width},${height}`} fill="rgba(255,255,255,0.72)" />
+              <line x1={width - fadeOutPx} y1={0} x2={width} y2={height} stroke="#222325" strokeOpacity={0.45} />
             </>
           ) : null}
         </svg>
       </div>
       <div
-        className="absolute inset-y-0 left-0 w-2 cursor-ew-resize hover:bg-white/30"
+        className="absolute inset-y-0 left-0 w-4 cursor-ew-resize hover:bg-[#222325]/10"
         onPointerDown={(e) => onPointerDown(e, "trimL")}
         title="Trim start"
       />
       <div
-        className="absolute inset-y-0 right-0 w-2 cursor-ew-resize hover:bg-white/30"
+        className="absolute inset-y-0 right-0 w-4 cursor-ew-resize hover:bg-[#222325]/10"
         onPointerDown={(e) => onPointerDown(e, "trimR")}
         title="Trim end"
       />
       <div
-        className="absolute top-0 size-3 -translate-x-1/2 cursor-ew-resize rounded-b-sm bg-white/80"
+        className="absolute top-0 size-4 -translate-x-1/2 cursor-ew-resize rounded-b-sm bg-[#222325]"
         style={{ left: Math.max(6, fadeInPx) }}
         onPointerDown={(e) => onPointerDown(e, "fadeIn")}
         title="Fade in"
       />
       <div
-        className="absolute top-0 size-3 translate-x-1/2 cursor-ew-resize rounded-b-sm bg-white/80"
+        className="absolute top-0 size-4 translate-x-1/2 cursor-ew-resize rounded-b-sm bg-[#222325]"
         style={{ right: Math.max(6, fadeOutPx) }}
         onPointerDown={(e) => onPointerDown(e, "fadeOut")}
         title="Fade out"
@@ -143,6 +143,7 @@ export function TrackHeader({
   onChange,
   onDelete,
   onImport,
+  width = HEADER_W,
 }: {
   track: Track;
   index: number;
@@ -150,15 +151,17 @@ export function TrackHeader({
   onChange: (patch: Partial<Track>) => void;
   onDelete: () => void;
   onImport: (files: FileList) => void;
+  width?: number;
 }) {
   const db = track.volume > 0 ? 20 * Math.log10(track.volume) : -Infinity;
   const panLabel =
     Math.abs(track.pan) < 0.02 ? "C" : track.pan < 0 ? `L${Math.round(-track.pan * 100)}` : `R${Math.round(track.pan * 100)}`;
+  const compact = width < 200;
 
   return (
     <div
-      className="sticky left-0 z-20 flex shrink-0 flex-col justify-between border-r border-b border-white/10 bg-[#151515] px-3 py-2"
-      style={{ width: HEADER_W, height: LANE_H }}
+      className="sticky left-0 z-20 flex shrink-0 flex-col justify-between overflow-hidden border-r border-b border-border bg-white px-2 py-2 sm:px-3"
+      style={{ width, height: LANE_H }}
     >
       <div className="flex items-center gap-2">
         <span className="h-6 w-1 shrink-0 rounded-full" style={{ background: track.color }} />
@@ -166,14 +169,14 @@ export function TrackHeader({
           value={track.name}
           onChange={(e) => onChange({ name: e.target.value })}
           aria-label={`Track ${index + 1} name`}
-          className="h-7 min-w-0 flex-1 rounded-md bg-transparent px-1 text-sm font-semibold outline-none focus:bg-black/60"
+          className="h-7 min-w-0 flex-1 rounded-md bg-transparent px-1 text-sm font-semibold text-[#222325] outline-none focus:bg-[#f5f5f5]"
         />
         <button
           type="button"
           aria-pressed={track.muted}
           title={labels.mute}
           onClick={() => onChange({ muted: !track.muted })}
-          className={`grid size-7 place-items-center rounded-md text-xs font-bold ${track.muted ? "bg-amber-400 text-black" : "bg-white/10 text-muted-foreground hover:text-foreground"}`}
+          className={`grid size-8 place-items-center rounded-md text-xs font-bold ${track.muted ? "bg-amber-400 text-[#222325]" : "bg-[#f5f5f5] text-muted-foreground hover:text-foreground"}`}
         >
           M
         </button>
@@ -182,13 +185,13 @@ export function TrackHeader({
           aria-pressed={track.solo}
           title={labels.solo}
           onClick={() => onChange({ solo: !track.solo })}
-          className={`grid size-7 place-items-center rounded-md text-xs font-bold ${track.solo ? "bg-emerald-400 text-black" : "bg-white/10 text-muted-foreground hover:text-foreground"}`}
+          className={`grid size-8 place-items-center rounded-md text-xs font-bold ${track.solo ? "bg-[#1dbf73] text-white" : "bg-[#f5f5f5] text-muted-foreground hover:text-foreground"}`}
         >
           S
         </button>
       </div>
       <label className="flex items-center gap-2 text-[11px] text-muted-foreground">
-        <span className="w-7">{labels.volume.slice(0, 3)}</span>
+        <span className={compact ? "sr-only" : "w-7"}>{labels.volume.slice(0, 3)}</span>
         <input
           type="range"
           min={0}
@@ -200,10 +203,10 @@ export function TrackHeader({
           aria-label={labels.volume}
           className="min-w-0 flex-1 accent-primary"
         />
-        <span className="w-12 text-right tabular-nums">{Number.isFinite(db) ? `${db.toFixed(1)}dB` : "-∞"}</span>
+        <span className="hidden w-12 text-right tabular-nums sm:inline">{Number.isFinite(db) ? `${db.toFixed(1)}dB` : "-∞"}</span>
       </label>
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-        <span className="w-7">{labels.pan}</span>
+        <span className={compact ? "sr-only" : "w-7"}>{labels.pan}</span>
         <input
           type="range"
           min={-1}
@@ -215,10 +218,10 @@ export function TrackHeader({
           aria-label={labels.pan}
           className="min-w-0 flex-1 accent-primary"
         />
-        <span className="w-8 text-right tabular-nums">{panLabel}</span>
+        <span className={compact ? "sr-only" : "w-8 text-right tabular-nums"}>{panLabel}</span>
         <label
           title={labels.importToTrack}
-          className="grid size-6 cursor-pointer place-items-center rounded-md bg-white/10 hover:bg-white/20"
+          className="grid size-8 cursor-pointer place-items-center rounded-md bg-[#f5f5f5] text-[#222325] hover:bg-[#e4e5e7]"
         >
           <Plus className="size-3.5" />
           <input
@@ -236,7 +239,7 @@ export function TrackHeader({
           type="button"
           title={labels.deleteTrack}
           onClick={onDelete}
-          className="grid size-6 place-items-center rounded-md bg-white/10 hover:bg-destructive/60"
+          className="grid size-8 place-items-center rounded-md bg-[#f5f5f5] text-[#222325] hover:bg-destructive/15 hover:text-destructive"
         >
           <Trash2 className="size-3.5" />
         </button>
@@ -262,18 +265,18 @@ export function Ruler({
 
   return (
     <div
-      className="relative cursor-text border-b border-white/10 bg-[#121212]"
+      className="relative cursor-text border-b border-border bg-[#fafafa]"
       style={{ width, height: RULER_H }}
       onPointerDown={onPointerDown}
     >
       {loop.end > loop.start ? (
         <div
-          className={`absolute inset-y-0 ${loop.on ? "bg-primary/30" : "bg-white/10"}`}
+          className={`absolute inset-y-0 ${loop.on ? "bg-primary/25" : "bg-[#222325]/5"}`}
           style={{ left: loop.start * pps, width: (loop.end - loop.start) * pps }}
         />
       ) : null}
       {ticks.map((s) => (
-        <div key={s} className="absolute top-0 h-full border-l border-white/20" style={{ left: s * pps }}>
+        <div key={s} className="absolute top-0 h-full border-l border-[#222325]/15" style={{ left: s * pps }}>
           <span className="ml-1 text-[10px] text-muted-foreground tabular-nums">
             {s >= 60 ? `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}` : `${s}s`}
           </span>

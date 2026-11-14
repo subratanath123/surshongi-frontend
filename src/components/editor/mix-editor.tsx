@@ -157,6 +157,8 @@ export function MixEditor() {
   const loadedSrcRef = useRef<string | null>(null);
   const actionsRef = useRef<Record<string, () => void>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
+  const headerWRef = useRef(HEADER_W);
+  const [headerW, setHeaderW] = useState(HEADER_W);
   const lanesRef = useRef<HTMLDivElement>(null);
   const playheadRef = useRef<HTMLDivElement>(null);
   const timeRef = useRef<HTMLSpanElement>(null);
@@ -172,6 +174,18 @@ export function MixEditor() {
   });
 
   useEffect(() => () => engineRef.current?.dispose(), []);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 640px)");
+    const apply = () => {
+      const next = query.matches ? 148 : HEADER_W;
+      headerWRef.current = next;
+      setHeaderW(next);
+    };
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
+  }, []);
 
   const end = projectEnd(project);
   const timelineWidth = Math.max(end + 30, 60, loop.end + 10) * pps;
@@ -535,7 +549,7 @@ export function MixEditor() {
       const scroller = scrollRef.current;
       if (scroller) {
         const x = pos * ppsRef.current;
-        const visible = scroller.clientWidth - HEADER_W;
+        const visible = scroller.clientWidth - headerWRef.current;
         if (x > scroller.scrollLeft + visible - 40 || x < scroller.scrollLeft) scroller.scrollLeft = Math.max(0, x - 40);
       }
       if (meterRef.current) {
@@ -809,21 +823,21 @@ export function MixEditor() {
   };
 
   const toolBtn =
-    "inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-white px-3 text-xs font-medium text-muted-foreground hover:border-border hover:text-foreground disabled:opacity-40";
+    "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-border bg-white px-3 text-xs font-medium text-muted-foreground hover:border-[#222325] hover:text-foreground disabled:opacity-40";
   const toggleOn = "border-primary/60 bg-primary/15 text-foreground";
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-5" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
+    <div className="mx-auto min-w-0 max-w-7xl px-3 py-5 sm:px-5 sm:py-6" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl">{t("title")}</h1>
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl sm:text-3xl">{t("title")}</h1>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">{t("sub")}</p>
         </div>
         <p className="text-xs text-muted-foreground">{t("rights")}</p>
       </div>
 
       {/* Transport */}
-      <div className="sticky top-16 z-30 mt-5 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card/95 p-2.5 shadow-xl backdrop-blur">
+      <div className="sticky top-16 z-30 mt-5 flex max-w-full flex-wrap items-center gap-2 rounded-xl border border-border bg-white p-2.5 shadow-sm">
         <div className="flex items-center gap-1">
           <button type="button" onClick={() => seek(0)} title={t("toStart")} className="grid size-10 place-items-center rounded-full hover:bg-secondary">
             <SkipBack className="size-4" />
@@ -908,7 +922,7 @@ export function MixEditor() {
           </button>
         </div>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
           <label className="flex items-center gap-2 text-xs text-muted-foreground">
             {t("master")}
             <input
@@ -921,7 +935,7 @@ export function MixEditor() {
               className="w-20 accent-primary"
             />
           </label>
-          <div className="h-2 w-16 overflow-hidden rounded-full bg-white/10" aria-hidden>
+          <div className="h-2 w-16 overflow-hidden rounded-full bg-[#e4e5e7]" aria-hidden>
             <div ref={meterRef} className="h-full w-0 rounded-full transition-[width] duration-75" />
           </div>
           <Button type="button" size="sm" className="rounded-full" disabled={exporting} onClick={() => void exportWav()}>
@@ -932,7 +946,7 @@ export function MixEditor() {
       </div>
 
       {/* Edit toolbar */}
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="mt-3 flex max-w-full items-center gap-2 overflow-x-auto pb-1">
         <label className={`${toolBtn} cursor-pointer`}>
           <Upload className="size-3.5" />
           {t("importAudio")}
@@ -952,7 +966,7 @@ export function MixEditor() {
             <Library className="size-3.5" />
             {t("fromShowcase")}
           </summary>
-          <div className="absolute z-40 mt-2 max-h-72 w-80 overflow-y-auto rounded-lg border border-border bg-muted p-2 shadow-2xl">
+          <div className="absolute z-40 mt-2 max-h-72 w-[min(18rem,calc(100dvw-2rem))] overflow-y-auto rounded-lg border border-border bg-white p-2 shadow-xl">
             {showcaseAudio.length === 0 ? (
               <p className="p-3 text-xs text-muted-foreground">{t("noShowcaseAudio")}</p>
             ) : (
@@ -980,7 +994,7 @@ export function MixEditor() {
           <Plus className="size-3.5" />
           {t("addTrack")}
         </button>
-        <span className="mx-1 h-6 w-px bg-white/10" />
+        <span className="mx-1 h-6 w-px shrink-0 bg-border" />
         <button type="button" className={toolBtn} onClick={splitAtPlayhead} disabled={end === 0}>
           <Scissors className="size-3.5" />
           {t("split")}
@@ -993,7 +1007,7 @@ export function MixEditor() {
           <Trash2 className="size-3.5" />
           {t("deleteClip")}
         </button>
-        <span className="mx-1 h-6 w-px bg-white/10" />
+        <span className="mx-1 h-6 w-px shrink-0 bg-border" />
         <button type="button" className={toolBtn} onClick={undo} disabled={history.past === 0}>
           <Undo2 className="size-3.5" />
           {t("undo")}
@@ -1007,7 +1021,7 @@ export function MixEditor() {
       {notice ? (
         <p
           role="status"
-          className={`mt-3 flex items-center justify-between gap-3 rounded-lg px-4 py-2.5 text-sm ${notice === "recording" ? "border border-red-500/40 bg-red-500/10 text-red-300" : notice === "loaded" ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border border-amber-500/30 bg-amber-500/10 text-amber-200"}`}
+          className={`mt-3 flex items-center justify-between gap-3 rounded-lg px-4 py-2.5 text-sm ${notice === "recording" ? "border border-red-200 bg-red-50 text-red-800" : notice === "loaded" ? "border border-emerald-200 bg-emerald-50 text-emerald-800" : "border border-amber-200 bg-amber-50 text-amber-900"}`}
         >
           {t(notice === "recording" ? "recordingHint" : notice)}
           {notice !== "recording" ? (
@@ -1019,12 +1033,12 @@ export function MixEditor() {
       ) : null}
 
       {/* Timeline */}
-      <div ref={scrollRef} className="relative mt-3 overflow-x-auto overflow-y-hidden rounded-xl border border-border bg-[#0e0e0e]">
-        <div className="relative" style={{ width: HEADER_W + timelineWidth }}>
+      <div ref={scrollRef} className="relative mt-3 max-w-full touch-pan-x overflow-x-auto overflow-y-hidden overscroll-x-contain rounded-xl border border-border bg-white">
+        <div className="relative" style={{ width: headerW + timelineWidth }}>
           <div className="flex">
             <div
               className="sticky left-0 z-20 flex shrink-0 items-center border-r border-b border-border bg-card px-3 text-[11px] text-muted-foreground"
-              style={{ width: HEADER_W, height: RULER_H }}
+              style={{ width: headerW, height: RULER_H }}
             >
               {t("tracksCount", { n: project.tracks.length })}
             </div>
@@ -1053,6 +1067,7 @@ export function MixEditor() {
                     if (selected?.trackId === track.id) setSelected(null);
                   }}
                   onImport={(files) => void importFiles(files, track.id)}
+                  width={headerW}
                 />
                 <div
                   className="relative border-b border-border"
@@ -1060,7 +1075,7 @@ export function MixEditor() {
                     width: timelineWidth,
                     height: LANE_H,
                     backgroundImage:
-                      "linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px)",
+                      "linear-gradient(to right, rgba(34,35,37,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(34,35,37,0.04) 1px, transparent 1px)",
                     backgroundSize: `${beatPx * 4}px 100%, ${beatPx}px 100%`,
                     opacity: track.muted ? 0.55 : 1,
                   }}
@@ -1094,15 +1109,15 @@ export function MixEditor() {
           {loop.on && loop.end > loop.start ? (
             <div
               className="pointer-events-none absolute bottom-0 bg-primary/5 ring-1 ring-primary/30"
-              style={{ top: RULER_H, left: HEADER_W + loop.start * pps, width: (loop.end - loop.start) * pps }}
+              style={{ top: RULER_H, left: headerW + loop.start * pps, width: (loop.end - loop.start) * pps }}
             />
           ) : null}
           <div
             ref={playheadRef}
-            className="pointer-events-none absolute top-0 bottom-0 z-10 w-px bg-white"
-            style={{ left: HEADER_W }}
+            className="pointer-events-none absolute top-0 bottom-0 z-10 w-0.5 bg-[#1dbf73]"
+            style={{ left: headerW }}
           >
-            <span className="absolute -top-0 -left-1.5 size-3 rotate-45 bg-white" />
+            <span className="absolute -top-0 -left-1.5 size-3 rotate-45 bg-[#1dbf73]" />
           </div>
         </div>
         {project.tracks.length === 0 || end === 0 ? (
@@ -1136,7 +1151,7 @@ export function MixEditor() {
           ) : (
             <p className="mt-2 text-sm text-muted-foreground">{t("noSelection")}</p>
           )}
-          <p className="mt-4 border-t border-border pt-3 text-xs leading-5 text-muted-foreground">{t("shortcuts")}</p>
+          <p className="mt-4 hidden border-t border-border pt-3 text-xs leading-5 text-muted-foreground sm:block">{t("shortcuts")}</p>
         </section>
 
         {/* Send */}
@@ -1195,7 +1210,7 @@ export function MixEditor() {
                     <Users className="size-4 text-primary" />
                     <span>{t("choose")}</span>
                   </span>
-                  <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs text-muted-foreground">
+                  <span className="rounded-full bg-[#f5f5f5] px-2.5 py-0.5 text-xs text-muted-foreground">
                     {locale === "bn"
                       ? `অনুসরণ করা (${followingMusicians.length}) · খুঁজুন`
                       : `Following (${followingMusicians.length}) · Search`}
@@ -1220,7 +1235,7 @@ export function MixEditor() {
               >
                 {sendState === "sending" ? t("sending") : t("sendMix")}
               </Button>
-              {sendState === "sent" ? <p className="text-xs text-emerald-400">{t("sent")}</p> : null}
+              {sendState === "sent" ? <p className="text-xs text-emerald-700">{t("sent")}</p> : null}
               {sendState === "error" ? <p className="text-xs text-destructive">{t("sendError")}</p> : null}
             </div>
           )}
@@ -1237,7 +1252,7 @@ export function MixEditor() {
           onClick={() => setPickerOpen(false)}
         >
           <div
-            className="w-full max-w-lg overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
+            className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -1356,7 +1371,7 @@ export function MixEditor() {
                               {isSelected ? (
                                 <Check className="size-4 shrink-0 text-primary" />
                               ) : (
-                                <span className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-foreground">
+                                <span className="shrink-0 rounded-full bg-[#f5f5f5] px-3 py-1 text-xs font-medium text-foreground">
                                   {locale === "bn" ? "বেছে নাও" : "Select"}
                                 </span>
                               )}
@@ -1430,7 +1445,7 @@ export function MixEditor() {
                                 {isSelected ? (
                                   <Check className="size-4 shrink-0 text-primary" />
                                 ) : (
-                                  <span className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-foreground">
+                                  <span className="shrink-0 rounded-full bg-[#f5f5f5] px-3 py-1 text-xs font-medium text-foreground">
                                     {locale === "bn" ? "বেছে নাও" : "Select"}
                                   </span>
                                 )}
