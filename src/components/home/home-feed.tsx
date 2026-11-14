@@ -555,6 +555,7 @@ export function HomeFeed() {
   }, [router]);
 
   const composerRef = useRef<HTMLDivElement>(null);
+  const bandsRef = useRef<HTMLDivElement>(null);
 
   function focusComposer(cat?: PostCategory) {
     if (cat) setPostCategory(cat);
@@ -566,7 +567,23 @@ export function HomeFeed() {
 
   useEffect(() => {
     if (!composerOpen) return;
-    composerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const align = () => {
+      const el = composerRef.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top + window.scrollY - 96;
+      window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+    };
+    const node = bandsRef.current;
+    const onEnd = (event: TransitionEvent) => {
+      if (event.target !== node || event.propertyName !== "grid-template-rows") return;
+      align();
+    };
+    node?.addEventListener("transitionend", onEnd);
+    const fallback = window.setTimeout(align, 560);
+    return () => {
+      node?.removeEventListener("transitionend", onEnd);
+      window.clearTimeout(fallback);
+    };
   }, [composerOpen]);
 
   useEffect(() => {
@@ -709,7 +726,8 @@ export function HomeFeed() {
       </form>
 
       <div
-        className={`grid transition-[grid-template-rows,opacity,transform] duration-500 ease-out ${
+        ref={bandsRef}
+        className={`grid overflow-anchor-none transition-[grid-template-rows,opacity,transform] duration-500 ease-out ${
           searchActive || composerOpen
             ? "pointer-events-none grid-rows-[0fr] -translate-y-3 scale-[0.98] opacity-0"
             : "grid-rows-[1fr] translate-y-0 scale-100 opacity-100"
@@ -962,7 +980,7 @@ export function HomeFeed() {
                 <div
                   id="composer"
                   ref={composerRef}
-                  className="scroll-mt-24 rounded-xl border border-border bg-white p-4 shadow-sm"
+                  className="scroll-mt-24 overflow-anchor-none rounded-xl border border-border bg-white p-4 shadow-sm"
                 >
                   {composerOpen ? (
                     <form onSubmit={(e) => void handleCreatePost(e)}>
