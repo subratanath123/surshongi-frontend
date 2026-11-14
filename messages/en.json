@@ -9,7 +9,8 @@
     "add": "Install",
     "later": "Not now",
     "notify": "Ping this phone when a new message arrives",
-    "notifyOn": "Turn on"
+    "notifyOn": "Turn on",
+    "notifyFailed": "Alerts could not be saved. Try again in a moment."
   },
   "Nav": {
     "brand": "SurShongi",

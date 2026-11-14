@@ -12,20 +12,32 @@ function installedApp() {
   );
 }
 
+let listening = false;
+
 async function savePushToken() {
   const registration = await navigator.serviceWorker.register("/sw.js");
   await navigator.serviceWorker.ready;
   const { getApp, getApps, initializeApp } = await import("firebase/app");
-  const { getMessaging, getToken } = await import("firebase/messaging");
+  const { getMessaging, getToken, onMessage } = await import("firebase/messaging");
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-  const token = await getToken(getMessaging(app), {
+  const messaging = getMessaging(app);
+  if (!listening) {
+    listening = true;
+    onMessage(messaging, (payload) => {
+      const title = payload.notification?.title || "SurShongi";
+      const body = payload.notification?.body || "";
+      new Notification(title, { body, icon: "/icons/icon-192.png" });
+    });
+  }
+  const token = await getToken(messaging, {
     vapidKey: firebaseVapidKey,
     serviceWorkerRegistration: registration,
   });
-  if (!token) return;
+  if (!token) throw new Error("missing token");
   if (localStorage.getItem("sur-push-token") === token) return;
   const saved = await mutateCommunity<{ error?: string }>({ action: "savePushToken", token });
-  if (!saved.error) localStorage.setItem("sur-push-token", token);
+  if (saved.error) throw new Error(saved.error);
+  localStorage.setItem("sur-push-token", token);
 }
 
 export function MessageAlerts({ className = "" }: { className?: string }) {
@@ -34,6 +46,7 @@ export function MessageAlerts({ className = "" }: { className?: string }) {
   const [standalone, setStandalone] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission | "unknown">("unknown");
   const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     setStandalone(installedApp());
@@ -43,16 +56,16 @@ export function MessageAlerts({ className = "" }: { className?: string }) {
   useEffect(() => {
     if (!standalone || !user?.id || permission !== "granted") return;
     if (!("serviceWorker" in navigator)) return;
-    void savePushToken().catch(() => {});
+    void savePushToken().then(() => setFailed(false)).catch(() => setFailed(true));
   }, [standalone, user?.id, permission]);
 
-  if (!standalone || !user || permission !== "default") return null;
+  if (!standalone || !user || (permission !== "default" && !failed)) return null;
 
   return (
     <div
       className={`pointer-events-auto flex max-w-md items-center gap-2 rounded-2xl border border-[#e4e5e7] bg-white p-2.5 shadow-xl sm:gap-3 sm:p-3 ${className}`}
     >
-      <p className="min-w-0 flex-1 text-sm text-[#222325]">{t("notify")}</p>
+      <p className="min-w-0 flex-1 text-sm text-[#222325]">{failed ? t("notifyFailed") : t("notify")}</p>
       <button
         type="button"
         disabled={busy}

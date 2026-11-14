@@ -10,6 +10,7 @@ try {
     appId: "1:563809041872:web:d1a5cbf411a956f16d8dd5",
   });
   firebase.messaging().onBackgroundMessage((payload) => {
+    if (payload.notification) return;
     const data = payload.data || {};
     const title = data.title || "SurShongi";
     return self.registration.showNotification(title, {
