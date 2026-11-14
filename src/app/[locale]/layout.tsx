@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { FacebookChatDock } from "@/components/chat/facebook-chat-dock";
 import { DockInset } from "@/components/layout/dock-inset";
 import { SaveProgress } from "@/components/layout/save-progress";
+import { YoutubeRouteStop } from "@/components/media/youtube-player";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { PwaRegister } from "@/components/pwa/pwa-register";
@@ -67,6 +68,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  interactiveWidget: "resizes-content",
   themeColor: "#1dbf73",
 };
 
@@ -97,6 +99,7 @@ export default async function LocaleLayout({
         </a>
         <NextIntlClientProvider>
           <DockInset />
+          <YoutubeRouteStop />
           <SaveProgress />
           <SiteHeader />
           <PwaRegister>

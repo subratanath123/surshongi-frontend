@@ -28,6 +28,8 @@
   --dock-right: 0px;
   --vv-width: 100vw;
   --vv-left: 0px;
+  --vv-top: 0px;
+  --vv-height: 100dvh;
 }
 
 @theme inline {

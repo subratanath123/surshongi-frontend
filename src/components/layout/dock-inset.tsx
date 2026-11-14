@@ -17,13 +17,17 @@ export function DockInset() {
         : 0;
       const width = viewport ? viewport.width : window.innerWidth;
       const left = viewport ? viewport.offsetLeft : 0;
-      const next = `${Math.round(bottom)}:${Math.round(right)}:${Math.round(width)}:${Math.round(left)}`;
+      const top = viewport ? viewport.offsetTop : 0;
+      const height = viewport ? viewport.height : window.innerHeight;
+      const next = `${Math.round(bottom)}:${Math.round(right)}:${Math.round(width)}:${Math.round(left)}:${Math.round(top)}:${Math.round(height)}`;
       if (next === last) return;
       last = next;
       root.style.setProperty("--dock-bottom", `${Math.round(bottom)}px`);
       root.style.setProperty("--dock-right", `${Math.round(right)}px`);
       root.style.setProperty("--vv-width", `${Math.round(width)}px`);
       root.style.setProperty("--vv-left", `${Math.round(left)}px`);
+      root.style.setProperty("--vv-top", `${Math.round(top)}px`);
+      root.style.setProperty("--vv-height", `${Math.round(height)}px`);
     };
     sync();
     const viewport = window.visualViewport;
@@ -43,6 +47,8 @@ export function DockInset() {
       root.style.removeProperty("--dock-right");
       root.style.removeProperty("--vv-width");
       root.style.removeProperty("--vv-left");
+      root.style.removeProperty("--vv-top");
+      root.style.removeProperty("--vv-height");
     };
   }, []);
 

@@ -146,7 +146,7 @@ export function FacebookChatDock() {
     <div
       className={
         sheetOpen
-          ? "pointer-events-none fixed z-[60] flex flex-col items-end justify-end max-sm:!inset-0 max-sm:!h-dvh max-sm:!w-dvw max-sm:max-h-none max-sm:max-w-none sm:max-h-[calc(100dvh-var(--dock-bottom,0px)-1.5rem)] sm:w-max sm:max-w-[calc(100%-1.5rem)] sm:gap-2"
+          ? "pointer-events-none fixed z-[60] flex flex-col items-end justify-end max-sm:!top-[var(--vv-top,0px)] max-sm:!left-[var(--vv-left,0px)] max-sm:!right-auto max-sm:!bottom-auto max-sm:!h-[var(--vv-height,100dvh)] max-sm:!w-[var(--vv-width,100dvw)] max-sm:max-h-none max-sm:max-w-none sm:max-h-[calc(100dvh-var(--dock-bottom,0px)-1.5rem)] sm:w-max sm:max-w-[calc(100%-1.5rem)] sm:gap-2"
           : "pointer-events-none fixed z-[60] flex w-max max-w-[calc(100%-1.5rem)] max-h-[calc(100dvh-var(--dock-bottom,0px)-1.5rem)] flex-col items-end justify-end gap-2"
       }
       style={{
@@ -355,11 +355,36 @@ function ChatBox({
     }
   }, [threadMessages, minimized, activeUserId, peerId]);
 
+  function stickThreadToLatest() {
+    const thread = threadContainerRef.current;
+    if (!thread) return;
+    thread.scrollTop = thread.scrollHeight;
+  }
+
   useEffect(() => {
     if (!minimized && threadContainerRef.current) {
       threadContainerRef.current.scrollTop = threadContainerRef.current.scrollHeight;
     }
   }, [threadMessages.length, pairOrders.length, minimized, expanded]);
+
+  useEffect(() => {
+    if (minimized) return;
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const keepLatestVisible = () => {
+      if (!window.matchMedia("(max-width: 639px)").matches) return;
+      const box = window.visualViewport;
+      const keyboard = box ? window.innerHeight - box.height - box.offsetTop : 0;
+      window.scrollTo(0, 0);
+      if (keyboard > 80) stickThreadToLatest();
+    };
+    viewport.addEventListener("resize", keepLatestVisible);
+    viewport.addEventListener("scroll", keepLatestVisible);
+    return () => {
+      viewport.removeEventListener("resize", keepLatestVisible);
+      viewport.removeEventListener("scroll", keepLatestVisible);
+    };
+  }, [minimized]);
 
   async function handleUploadAttachment(
     file: File | undefined,
@@ -963,8 +988,9 @@ function ChatBox({
 
           <div
             ref={threadContainerRef}
-            className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4"
+            className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
           >
+            <div className="mt-auto space-y-3 p-4">
             {threadMessages.length === 0 ? (
               <p className="text-base leading-7 text-muted-foreground">{t("emptyChat")}</p>
             ) : (
@@ -995,6 +1021,7 @@ function ChatBox({
                 );
               })
             )}
+            </div>
           </div>
 
           <form
@@ -1062,6 +1089,13 @@ function ChatBox({
               <input
                 value={text}
                 onChange={(e) => setText(e.target.value)}
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  event.currentTarget.focus({ preventScroll: true });
+                  window.scrollTo(0, 0);
+                  stickThreadToLatest();
+                  window.setTimeout(stickThreadToLatest, 280);
+                }}
                 placeholder={t("chatPlaceholder")}
                 aria-label={t("messageLabel")}
                 className="h-11 min-w-0 flex-1 rounded-full border border-border bg-white px-4 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
