@@ -7,7 +7,9 @@
   "Pwa": {
     "install": "Add SurShongi to your home screen",
     "add": "Install",
-    "later": "Not now"
+    "later": "Not now",
+    "notify": "Ping this phone when a new message arrives",
+    "notifyOn": "Turn on"
   },
   "Nav": {
     "brand": "SurShongi",
@@ -344,6 +346,7 @@
     "ask": "Ask",
     "seeMore": "See more",
     "seeLess": "Show less",
+    "showCategories": "All categories",
     "relatedPosts": "Related posts",
     "noRelatedPosts": "No posts match this search.",
     "filters": "Filter the feed",

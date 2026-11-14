@@ -17,7 +17,15 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-white">
       <div className="mx-auto flex h-16 min-w-0 max-w-6xl items-center gap-2 px-3 sm:gap-4 sm:px-5">
-        <Link href="/" className="flex min-w-0 shrink-0 items-center gap-2.5" aria-label={t("home")}>
+        <Link
+          href="/"
+          className="flex min-w-0 shrink-0 items-center gap-2.5"
+          aria-label={t("home")}
+          onClick={() => {
+            setSearchOpen(false);
+            window.dispatchEvent(new Event("sur-home-feed"));
+          }}
+        >
           <Mark className="size-7 text-primary" />
           <span className="hidden truncate text-lg font-bold tracking-tight text-foreground min-[420px]:inline">
             {t("brand")}

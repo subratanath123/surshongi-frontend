@@ -1,3 +1,40 @@
+try {
+  importScripts("https://www.gstatic.com/firebasejs/13.3.0/firebase-app-compat.js");
+  importScripts("https://www.gstatic.com/firebasejs/13.3.0/firebase-messaging-compat.js");
+  firebase.initializeApp({
+    apiKey: "AIzaSyCpD-HTRWsQy3mgxTHwtVLNiIQWj88gpu8",
+    authDomain: "sur-shongi.firebaseapp.com",
+    projectId: "sur-shongi",
+    storageBucket: "sur-shongi.firebasestorage.app",
+    messagingSenderId: "563809041872",
+    appId: "1:563809041872:web:d1a5cbf411a956f16d8dd5",
+  });
+  firebase.messaging().onBackgroundMessage((payload) => {
+    const data = payload.data || {};
+    const title = data.title || "SurShongi";
+    return self.registration.showNotification(title, {
+      body: data.body || "",
+      icon: "/icons/icon-192.png",
+      data: { url: data.url || "/" },
+    });
+  });
+} catch {
+  // The installed app still opens if Firebase cannot be loaded.
+}
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      for (const client of windows) {
+        if ("focus" in client) return client.focus();
+      }
+      return self.clients.openWindow(target);
+    }),
+  );
+});
+
 const CACHE = "surshongi-static-v1";
 const PRECACHE = ["/offline.html", "/icons/icon-192.png", "/icons/icon-512.png"];
 

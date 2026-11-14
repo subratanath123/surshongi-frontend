@@ -27,6 +27,7 @@ import {
   MediaAttachmentPreview,
 } from "@/components/media/media-attachment-preview";
 import { PaymentCheck } from "@/components/orders/payment-check";
+import { MessageAlerts } from "@/components/pwa/message-alerts";
 import { InstallBanner } from "@/components/pwa/pwa-register";
 import { roleLabelKey } from "@/lib/account-kind";
 import { pick } from "@/data/catalog";
@@ -178,7 +179,8 @@ export function FacebookChatDock() {
       })}
       </div>
 
-      {/* Install sits above the messages button so the two never cover each other. */}
+      {/* Alerts and install sit above the messages button so they never cover each other. */}
+      <MessageAlerts className={sheetOpen ? "hidden w-full sm:block sm:w-auto" : "w-full sm:w-auto"} />
       <InstallBanner className={sheetOpen ? "hidden w-full sm:block sm:w-auto" : "w-full sm:w-auto"} />
       <div
         className={

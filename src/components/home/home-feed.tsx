@@ -438,6 +438,7 @@ export function HomeFeed() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedHasMore, filter, searchActive, feedCards.length]);
   const searchRef = useRef<HTMLFormElement>(null);
+  const resultsRef = useRef<HTMLElement>(null);
   const [askIn, setAskIn] = useState(false);
 
   const relatedPosts = useMemo(() => {
@@ -465,6 +466,28 @@ export function HomeFeed() {
       return terms.some((term) => hay.includes(term));
     });
   }, [db.posts, searchActive, userMap, vectorQuery]);
+
+  useEffect(() => {
+    if (!service) return;
+    const timer = window.setTimeout(() => {
+      const node = resultsRef.current;
+      if (!node) return;
+      const top = node.getBoundingClientRect().top + window.scrollY - 72;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }, 50);
+    return () => window.clearTimeout(timer);
+  }, [service]);
+
+  function pickService(id: ServiceId) {
+    clearSearch();
+    if (service === id) {
+      setService(null);
+      setFilter("all");
+      return;
+    }
+    setService(id);
+    setFilter("musicians");
+  }
 
   useEffect(() => {
     if (!searchActive) {
@@ -512,6 +535,24 @@ export function HomeFeed() {
     setQuery(urlQuery);
     void runSearch(urlQuery);
   }, [urlQuery, runSearch]);
+
+  useEffect(() => {
+    const reset = () => {
+      setService(null);
+      setFilter("all");
+      setComposerOpen(false);
+      searchSeq.current += 1;
+      appliedUrlQuery.current = "";
+      setQuery("");
+      setVectorHits(null);
+      setVectorQuery("");
+      setSearchingVector(false);
+      if (new URLSearchParams(window.location.search).get("q")) router.replace("/");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    window.addEventListener("sur-home-feed", reset);
+    return () => window.removeEventListener("sur-home-feed", reset);
+  }, [router]);
 
   const composerRef = useRef<HTMLDivElement>(null);
 
@@ -599,7 +640,7 @@ export function HomeFeed() {
       {/* Top Header */}
       <div
         className={`grid transition-[grid-template-rows,opacity,transform] duration-500 ease-out ${
-          searchActive ? "grid-rows-[0fr] -translate-y-2 opacity-0" : "grid-rows-[1fr] translate-y-0 opacity-100"
+          service ? "hidden" : searchActive ? "grid-rows-[0fr] -translate-y-2 opacity-0" : "grid-rows-[1fr] translate-y-0 opacity-100"
         }`}
       >
         <div className="overflow-hidden">
@@ -631,7 +672,7 @@ export function HomeFeed() {
       {/* Semantic Search Bar */}
       <form
         ref={searchRef}
-        className={`sticky top-16 z-30 mt-6 flex scroll-mt-20 origin-top items-center gap-2 rounded-md border bg-white p-2 transition-all duration-500 ease-out ${
+        className={`${service ? "hidden" : "sticky top-16 z-30"} mt-6 flex scroll-mt-20 origin-top items-center gap-2 rounded-md border bg-white p-2 transition-all duration-500 ease-out ${
           searchActive
             ? "scale-[1.03] border-[#1dbf73] shadow-[0_16px_40px_rgba(29,191,115,0.18)] ring-2 ring-[#1dbf73]/30"
             : "border-[#e4e5e7] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_8px_24px_rgba(0,0,0,0.06)]"
@@ -675,29 +716,25 @@ export function HomeFeed() {
         }`}
       >
         <div className="overflow-hidden">
-          <CategoryBand
-            sectionId="hire"
-            title={t("hireHeading")}
-            tiles={categoryTiles.filter((tile) => tile.group === "hire")}
-            service={service}
-            label={(id) => t(`services.${id}`)}
-            onPick={(id) => {
-              clearSearch();
-              setService((current) => (current === id ? null : id));
-              setFilter("musicians");
-            }}
-          />
-          <CategoryBand
-            title={t("studioHeading")}
-            tiles={categoryTiles.filter((tile) => tile.group === "studio")}
-            service={service}
-            label={(id) => t(`services.${id}`)}
-            onPick={(id) => {
-              clearSearch();
-              setService((current) => (current === id ? null : id));
-              setFilter("musicians");
-            }}
-          />
+          {service ? null : (
+            <>
+              <CategoryBand
+                sectionId="hire"
+                title={t("hireHeading")}
+                tiles={categoryTiles.filter((tile) => tile.group === "hire")}
+                service={service}
+                label={(id) => t(`services.${id}`)}
+                onPick={pickService}
+              />
+              <CategoryBand
+                title={t("studioHeading")}
+                tiles={categoryTiles.filter((tile) => tile.group === "studio")}
+                service={service}
+                label={(id) => t(`services.${id}`)}
+                onPick={pickService}
+              />
+            </>
+          )}
         </div>
       </div>
 
@@ -748,9 +785,11 @@ export function HomeFeed() {
         </div>
       ) : (
         <>
-          {/* Filter Pills */}
+          {/* Filter Pills. Hidden while a hire category is open so its matches sit on screen. */}
           <div
-            className="mt-4 flex max-w-full min-w-0 gap-1.5 overflow-x-auto rounded-lg border border-border bg-card p-1.5"
+            className={`mt-4 max-w-full min-w-0 gap-1.5 overflow-x-auto rounded-lg border border-border bg-card p-1.5 ${
+              service ? "hidden" : "flex"
+            }`}
             role="group"
             aria-label={t("filters")}
           >
@@ -777,15 +816,64 @@ export function HomeFeed() {
 
           {filter === "musicians" ? (
             /* Full-width Musicians Directory Grid */
-            <section className="mt-6" aria-labelledby="directory-heading">
-              <div className="flex items-center justify-between gap-2">
-                <h2 id="directory-heading" className="font-display text-xl font-bold">
-                  {t("directoryTitle")}
-                </h2>
-                <span className="text-xs text-muted-foreground">
-                  {formatNumber(visibleMusicians.length, locale)} {t("musiciansCount")}
-                </span>
-              </div>
+            <section
+              ref={resultsRef}
+              id="category-results"
+              className="mt-4 scroll-mt-20"
+              aria-labelledby="directory-heading"
+            >
+              {service ? (
+                <div>
+                  <div className="flex items-center justify-between gap-3">
+                    <h2 id="directory-heading" className="min-w-0 truncate font-display text-xl font-bold text-[#222325]">
+                      {t(`services.${service}`)}
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setService(null);
+                        setFilter("all");
+                      }}
+                      className="shrink-0 text-sm font-semibold text-[#1dbf73]"
+                    >
+                      {t("showCategories")}
+                    </button>
+                  </div>
+                  <div
+                    className="mt-3 flex max-w-full gap-2 overflow-x-auto pb-1"
+                    role="group"
+                    aria-label={t("hireHeading")}
+                  >
+                    {categoryTiles.map((tile) => (
+                      <button
+                        key={tile.id}
+                        type="button"
+                        aria-pressed={service === tile.id}
+                        onClick={() => pickService(tile.id)}
+                        className={
+                          service === tile.id
+                            ? "shrink-0 rounded-full bg-[#1dbf73] px-3 py-2 text-xs font-semibold text-white"
+                            : "shrink-0 rounded-full border border-[#e4e5e7] bg-white px-3 py-2 text-xs font-semibold text-[#222325]"
+                        }
+                      >
+                        {t(`services.${tile.id}`)}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {formatNumber(visibleMusicians.length, locale)} {t("musiciansCount")}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-2">
+                  <h2 id="directory-heading" className="font-display text-xl font-bold">
+                    {t("directoryTitle")}
+                  </h2>
+                  <span className="text-xs text-muted-foreground">
+                    {formatNumber(visibleMusicians.length, locale)} {t("musiciansCount")}
+                  </span>
+                </div>
+              )}
 
               {visibleMusicians.length === 0 ? (
                 <p className="mt-4 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
