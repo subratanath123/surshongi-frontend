@@ -11,15 +11,19 @@ try {
   });
   firebase.messaging().onBackgroundMessage((payload) => {
     const note = payload.notification || {};
+    if (note.title) return;
     const data = payload.data || {};
-    const title = note.title || data.title || "SurShongi";
-    const body = note.body || data.body || "";
+    const title = data.title || "SurShongi";
+    const body = data.body || "";
     const url = (payload.fcmOptions && payload.fcmOptions.link) || data.url || "/";
     return self.registration.showNotification(title, {
       body,
       icon: "/icons/icon-192.png",
       data: { url },
     });
+  });
+  self.addEventListener("push", (event) => {
+    event.waitUntil(showWhenMinimized(event));
   });
 } catch {
   self.addEventListener("push", (event) => {
@@ -43,6 +47,28 @@ try {
   });
 }
 
+async function showWhenMinimized(event) {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    payload = {};
+  }
+  const note = payload.notification || {};
+  const data = payload.data || {};
+  const title = note.title || data.title;
+  if (!title) return;
+  const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  const visible = windows.some((client) => client.visibilityState === "visible");
+  const focused = windows.some((client) => client.focused);
+  if (!visible || focused) return;
+  await self.registration.showNotification(title, {
+    body: note.body || data.body || "",
+    icon: "/icons/icon-192.png",
+    data: { url: data.url || note.click_action || "/" },
+  });
+}
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const target = (event.notification.data && event.notification.data.url) || "/";
@@ -56,7 +82,7 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-const CACHE = "surshongi-static-v2";
+const CACHE = "surshongi-static-v3";
 const PRECACHE = ["/offline.html", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {

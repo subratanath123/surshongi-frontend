@@ -17,8 +17,9 @@ async function savePushToken() {
   if (!listening) {
     listening = true;
     onMessage(messaging, (payload) => {
-      const title = payload.notification?.title || "SurShongi";
-      const body = payload.notification?.body || "";
+      if (document.visibilityState !== "visible" || !document.hasFocus()) return;
+      const title = payload.notification?.title || payload.data?.title || "SurShongi";
+      const body = payload.notification?.body || payload.data?.body || "";
       new Notification(title, { body, icon: "/icons/icon-192.png" });
     });
   }
