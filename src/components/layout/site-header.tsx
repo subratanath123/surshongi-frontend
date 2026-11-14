@@ -16,17 +16,17 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-white">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-4 sm:px-5">
+      <div className="mx-auto flex h-16 min-w-0 max-w-6xl items-center gap-2 px-3 sm:gap-4 sm:px-5">
         <Link href="/" className="flex min-w-0 shrink-0 items-center gap-2.5" aria-label={t("home")}>
           <Mark className="size-7 text-primary" />
-          <span className="truncate text-lg font-bold tracking-tight text-foreground">
+          <span className="hidden truncate text-lg font-bold tracking-tight text-foreground min-[420px]:inline">
             {t("brand")}
           </span>
         </Link>
 
         <HeaderSearch />
 
-        <nav className="ml-auto flex items-center gap-1.5 sm:gap-2" aria-label={t("brand")}>
+        <nav className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2" aria-label={t("brand")}>
           <button
             type="button"
             className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground md:hidden"

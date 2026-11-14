@@ -27,6 +27,7 @@ import {
   MediaAttachmentPreview,
 } from "@/components/media/media-attachment-preview";
 import { PaymentCheck } from "@/components/orders/payment-check";
+import { InstallBanner } from "@/components/pwa/pwa-register";
 import { roleLabelKey } from "@/lib/account-kind";
 import { pick } from "@/data/catalog";
 import { Link } from "@/i18n/navigation";
@@ -97,16 +98,33 @@ export function FacebookChatDock() {
   }, [db.messages, db.orders, db.users, activeUserId]);
 
   if (!activeUserId) {
-    return null;
+    return (
+      <div
+        className="fixed z-50 w-max max-w-[calc(100%-1.5rem)]"
+        style={{
+          right: "max(0.75rem, calc(var(--dock-right, 0px) + env(safe-area-inset-right, 0px)))",
+          bottom:
+            "calc(var(--dock-bottom, 0px) + max(0.75rem, env(safe-area-inset-bottom, 0px)))",
+        }}
+      >
+        <InstallBanner className="w-full" />
+      </div>
+    );
   }
 
   const visibleChatWindows = chatWindows.filter((win) => win.musicianId !== activeUserId);
 
   return (
     <div
-      className="fixed right-3 bottom-0 z-50 flex items-end gap-3 sm:right-6"
+      className="pointer-events-none fixed z-[60] flex w-max max-w-[calc(100%-1.5rem)] max-h-[calc(100dvh-var(--dock-bottom,0px)-1.5rem)] flex-col items-end justify-end gap-2"
+      style={{
+        right: "max(0.75rem, calc(var(--dock-right, 0px) + env(safe-area-inset-right, 0px)))",
+        bottom:
+          "calc(var(--dock-bottom, 0px) + max(0.75rem, env(safe-area-inset-bottom, 0px)))",
+      }}
       aria-label={t("chatHeading")}
     >
+      <div className="flex min-h-0 w-full flex-col items-end gap-2 overflow-y-auto sm:w-auto sm:flex-row">
       {visibleChatWindows.map((win) => {
         const peer = db.users.find((u) => u.id === win.musicianId);
         if (!peer || peer.id === activeUserId) return null;
@@ -126,11 +144,13 @@ export function FacebookChatDock() {
           />
         );
       })}
+      </div>
 
-      {/* Quick Messenger Bubble Launcher — shows only existing conversation peers */}
-      <div className="relative mb-3">
+      {/* Install sits above the messages button so the two never cover each other. */}
+      <InstallBanner className="w-full sm:w-auto" />
+      <div className="pointer-events-auto relative flex w-full flex-col items-end sm:w-auto">
         {launcherOpen ? (
-          <div className="mb-3 w-80 rounded-xl border border-border bg-muted p-4 shadow-2xl">
+          <div className="mb-3 w-full max-w-80 rounded-xl border border-border bg-muted p-4 shadow-2xl sm:w-80">
             <div className="flex items-center justify-between border-b border-border pb-2.5">
               <span className="text-sm font-semibold">
                 {t("chatHeading")} ({conversationPeers.length})
@@ -187,12 +207,11 @@ export function FacebookChatDock() {
         <button
           type="button"
           onClick={() => setLauncherOpen((v) => !v)}
-          className="inline-flex h-12 items-center gap-2.5 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-xl shadow-[#ff5500]/25 transition-transform hover:scale-[1.02]"
+          aria-label={t("chatHeading")}
+          className="inline-flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl shadow-[#ff5500]/25 sm:h-12 sm:w-auto sm:gap-2.5 sm:px-5"
         >
-          <span className="grid size-6 place-items-center rounded-full bg-black/20 text-primary-foreground">
-            <MessageCircle className="size-4" />
-          </span>
-          <span>
+          <MessageCircle className="size-5 sm:size-4" />
+          <span className="hidden text-sm font-semibold sm:inline">
             {t("chatHeading")}
             {conversationPeers.length > 0 ? ` (${conversationPeers.length})` : ""}
           </span>
@@ -423,8 +442,8 @@ function ChatBox({
     <section
       className={
         expanded
-          ? "w-[96vw] max-w-[920px] overflow-hidden rounded-t-xl border border-primary/40 bg-card shadow-2xl sm:w-[820px] lg:w-[920px]"
-          : "w-[95vw] max-w-[680px] overflow-hidden rounded-t-xl border border-border bg-card shadow-2xl sm:w-[620px] lg:w-[680px]"
+          ? "pointer-events-auto w-[min(22rem,calc(100dvw-2rem))] max-w-[calc(100dvw-2rem)] overflow-hidden rounded-t-xl border border-primary/40 bg-card shadow-2xl sm:w-[820px] sm:max-w-[920px] lg:w-[920px]"
+          : "pointer-events-auto w-[min(22rem,calc(100dvw-2rem))] max-w-[calc(100dvw-2rem)] overflow-hidden rounded-t-xl border border-border bg-card shadow-2xl sm:w-[620px] sm:max-w-[680px] lg:w-[680px]"
       }
       aria-label={peerName}
     >
@@ -896,8 +915,8 @@ function ChatBox({
             ref={threadContainerRef}
             className={
               expanded
-                ? "h-[60vh] max-h-[700px] min-h-[420px] space-y-4 overflow-y-auto p-6"
-                : "h-[46vh] max-h-[560px] min-h-[360px] space-y-3.5 overflow-y-auto p-5"
+                ? "h-[60vh] max-h-[700px] min-h-[16rem] space-y-4 overflow-y-auto p-6 sm:min-h-[420px]"
+                : "h-[46vh] max-h-[560px] min-h-[12rem] space-y-3.5 overflow-y-auto p-5 sm:min-h-[360px]"
             }
           >
             {threadMessages.length === 0 ? (

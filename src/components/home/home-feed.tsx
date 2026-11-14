@@ -573,7 +573,7 @@ export function HomeFeed() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-5">
+    <div className="mx-auto min-w-0 max-w-6xl px-4 py-6 sm:px-5">
       {/* Top Header */}
       <div
         className={`grid transition-[grid-template-rows,opacity,transform] duration-500 ease-out ${
@@ -727,7 +727,7 @@ export function HomeFeed() {
         <>
           {/* Filter Pills */}
           <div
-            className="mt-4 flex gap-1.5 overflow-x-auto rounded-lg border border-border bg-card p-1.5"
+            className="mt-4 flex max-w-full min-w-0 gap-1.5 overflow-x-auto rounded-lg border border-border bg-card p-1.5"
             role="group"
             aria-label={t("filters")}
           >
