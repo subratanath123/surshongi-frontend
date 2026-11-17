@@ -20,7 +20,7 @@ const FIELDS = [
     hint: "linkSpotifyHint",
     placeholder: "https://open.spotify.com/artist/…",
     hosts: ["spotify.com"],
-    className: "border-[#1dbf73] bg-white text-[#222325] hover:bg-[#e8f8ef]",
+    className: "border-[#5B35F5] bg-white text-[#222325] hover:bg-[#F3EEFF]",
   },
   {
     key: "facebookUrl",
@@ -28,7 +28,7 @@ const FIELDS = [
     hint: "linkFacebookHint",
     placeholder: "https://facebook.com/yourpage",
     hosts: ["facebook.com", "fb.com"],
-    className: "border-[#e4e5e7] bg-white text-[#222325] hover:border-[#1dbf73]",
+    className: "border-[#e4e5e7] bg-white text-[#222325] hover:border-[#5B35F5]",
   },
   {
     key: "twitterUrl",
@@ -36,7 +36,7 @@ const FIELDS = [
     hint: "linkTwitterHint",
     placeholder: "https://x.com/yourname",
     hosts: ["twitter.com", "x.com"],
-    className: "border-[#e4e5e7] bg-white text-[#222325] hover:border-[#1dbf73]",
+    className: "border-[#e4e5e7] bg-white text-[#222325] hover:border-[#5B35F5]",
   },
 ] as const;
 
@@ -119,7 +119,7 @@ export function ProfileLinks({ profile, isOwner }: { profile: Musician; isOwner:
                   setError("");
                   setEditing(true);
                 }}
-                className="inline-flex h-10 items-center rounded-full px-3 text-sm font-semibold text-[#1dbf73] hover:bg-[#e8f8ef]"
+                className="inline-flex h-10 items-center rounded-full px-3 text-sm font-semibold text-[#5B35F5] hover:bg-[#F3EEFF]"
               >
                 {t("linksEdit")}
               </button>
@@ -129,12 +129,12 @@ export function ProfileLinks({ profile, isOwner }: { profile: Musician; isOwner:
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="inline-flex h-10 items-center rounded-full border border-dashed border-[#1dbf73] px-4 text-sm font-semibold text-[#1dbf73] hover:bg-[#e8f8ef]"
+            className="inline-flex h-10 items-center rounded-full border border-dashed border-[#5B35F5] px-4 text-sm font-semibold text-[#5B35F5] hover:bg-[#F3EEFF]"
           >
             {t("linksTitle")}
           </button>
         )}
-        {savedNote ? <p className="mt-2 text-xs font-medium text-[#1dbf73]">{t("linksSaved")}</p> : null}
+        {savedNote ? <p className="mt-2 text-xs font-medium text-[#5B35F5]">{t("linksSaved")}</p> : null}
       </div>
     );
   }
@@ -166,7 +166,7 @@ export function ProfileLinks({ profile, isOwner }: { profile: Musician; isOwner:
         <button
           type="submit"
           disabled={saving}
-          className="h-8 rounded-full bg-[#1dbf73] px-4 text-xs font-semibold text-white disabled:opacity-60"
+          className="h-8 rounded-full bg-[#5B35F5] px-4 text-xs font-semibold text-white disabled:opacity-60"
         >
           {saving ? "…" : t("linksSave")}
         </button>

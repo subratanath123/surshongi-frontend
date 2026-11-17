@@ -54,7 +54,7 @@ export function MessageAlerts({ className = "" }: { className?: string }) {
   if (!user || (permission !== "default" && permission !== "denied" && !failed)) return null;
 
   return (
-    <div className={`border-b border-[#d7f3e4] bg-[#f3fbf6] px-4 py-2.5 ${className}`}>
+    <div className={`border-b border-[#E4D9FF] bg-[#F6F3FF] px-4 py-2.5 ${className}`}>
       <div className="mx-auto flex max-w-6xl items-center gap-3">
       <p className="min-w-0 flex-1 text-sm text-[#222325]">
         {permission === "denied" ? t("notifyBlocked") : failed ? t("notifyFailed") : t("notify")}
@@ -73,7 +73,7 @@ export function MessageAlerts({ className = "" }: { className?: string }) {
               })
               .finally(() => setBusy(false));
           }}
-          className="h-9 shrink-0 rounded-full bg-[#1dbf73] px-3 text-xs font-semibold text-white disabled:opacity-60"
+          className="h-9 shrink-0 rounded-full bg-[#5B35F5] px-3 text-xs font-semibold text-white disabled:opacity-60"
         >
           {t("notifyOn")}
         </button>

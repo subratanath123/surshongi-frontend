@@ -65,7 +65,7 @@ export function InstallBanner({ className = "" }: { className?: string }) {
       <button
         type="button"
         onClick={accept}
-        className="h-9 shrink-0 rounded-full bg-[#1dbf73] px-3 text-xs font-semibold text-white"
+        className="h-9 shrink-0 rounded-full bg-[#5B35F5] px-3 text-xs font-semibold text-white"
       >
         {t("add")}
       </button>

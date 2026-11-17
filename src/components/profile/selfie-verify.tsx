@@ -154,7 +154,7 @@ export function SelfieVerify({
                 type="button"
                 disabled={busy}
                 onClick={() => void save()}
-                className="h-10 rounded-full bg-[#1dbf73] px-4 text-sm font-semibold text-white disabled:opacity-60"
+                className="h-10 rounded-full bg-[#5B35F5] px-4 text-sm font-semibold text-white disabled:opacity-60"
               >
                 {busy ? t("uploading") : t("selfieUse")}
               </button>
@@ -163,7 +163,7 @@ export function SelfieVerify({
             <button
               type="button"
               onClick={capture}
-              className="h-10 rounded-full bg-[#1dbf73] px-4 text-sm font-semibold text-white"
+              className="h-10 rounded-full bg-[#5B35F5] px-4 text-sm font-semibold text-white"
             >
               {t("selfieCapture")}
             </button>

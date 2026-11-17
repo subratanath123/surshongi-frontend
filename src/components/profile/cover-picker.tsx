@@ -37,7 +37,7 @@ export function CoverPicker({
                 onClick={() => onSelect(cover.src)}
                 className={
                   active
-                    ? "block w-full overflow-hidden rounded-lg border-2 border-[#1dbf73] text-left"
+                    ? "block w-full overflow-hidden rounded-lg border-2 border-[#5B35F5] text-left"
                     : "block w-full overflow-hidden rounded-lg border-2 border-transparent text-left hover:border-[#222325]"
                 }
               >
@@ -48,7 +48,7 @@ export function CoverPicker({
                     {t(cover.id)}
                   </span>
                   {score > 0 ? (
-                    <span className="shrink-0 rounded-full bg-[#e8f8ef] px-1.5 py-0.5 text-[10px] font-semibold text-[#1dbf73]">
+                    <span className="shrink-0 rounded-full bg-[#F3EEFF] px-1.5 py-0.5 text-[10px] font-semibold text-[#5B35F5]">
                       {t("forYou")}
                     </span>
                   ) : null}

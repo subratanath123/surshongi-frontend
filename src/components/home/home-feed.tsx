@@ -195,7 +195,7 @@ function CategoryCard({
       aria-pressed={pressed}
       onClick={onPick}
       className={`relative aspect-[16/10] overflow-hidden rounded-xl ${
-        pressed ? "ring-2 ring-[#1dbf73] ring-offset-2" : ""
+        pressed ? "ring-2 ring-[#5B35F5] ring-offset-2" : ""
       }`}
     >
       <img
@@ -272,7 +272,7 @@ function CategoryBand({
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((current) => !current)}
-          className="mt-3 w-full rounded-lg border border-border bg-white py-2 text-sm font-semibold text-[#222325] transition-colors hover:border-[#1dbf73] hover:text-[#1dbf73]"
+          className="mt-3 w-full rounded-lg border border-border bg-white py-2 text-sm font-semibold text-[#222325] transition-colors hover:border-[#5B35F5] hover:text-[#5B35F5]"
         >
           {open ? t("seeLess") : t("seeMore")}
         </button>
@@ -691,7 +691,7 @@ export function HomeFeed() {
         ref={searchRef}
         className={`${service ? "hidden" : "sticky top-16 z-30"} mt-6 flex scroll-mt-20 origin-top items-center gap-2 rounded-md border bg-white p-2 transition-all duration-500 ease-out ${
           searchActive
-            ? "scale-[1.03] border-[#1dbf73] shadow-[0_16px_40px_rgba(29,191,115,0.18)] ring-2 ring-[#1dbf73]/30"
+            ? "scale-[1.03] border-[#5B35F5] shadow-[0_16px_40px_rgba(91,53,245,0.18)] ring-2 ring-[#5B35F5]/30"
             : "border-[#e4e5e7] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_8px_24px_rgba(0,0,0,0.06)]"
         }`}
         onSubmit={(e) => void handleSemanticSearch(e)}
@@ -852,7 +852,7 @@ export function HomeFeed() {
                         setService(null);
                         setFilter("all");
                       }}
-                      className="shrink-0 text-sm font-semibold text-[#1dbf73]"
+                      className="shrink-0 text-sm font-semibold text-[#5B35F5]"
                     >
                       {t("showCategories")}
                     </button>
@@ -870,7 +870,7 @@ export function HomeFeed() {
                         onClick={() => pickService(tile.id)}
                         className={
                           service === tile.id
-                            ? "shrink-0 rounded-full bg-[#1dbf73] px-3 py-2 text-xs font-semibold text-white"
+                            ? "shrink-0 rounded-full bg-[#5B35F5] px-3 py-2 text-xs font-semibold text-white"
                             : "shrink-0 rounded-full border border-[#e4e5e7] bg-white px-3 py-2 text-xs font-semibold text-[#222325]"
                         }
                       >
@@ -931,7 +931,7 @@ export function HomeFeed() {
                 >
                   <p className="flex items-center gap-2 text-xs font-semibold text-[#222325]">
                     {prefsBusy ? (
-                      <Loader2 className="size-3.5 animate-spin text-[#1dbf73]" aria-hidden="true" />
+                      <Loader2 className="size-3.5 animate-spin text-[#5B35F5]" aria-hidden="true" />
                     ) : null}
                     {t("feedPrefsLabel")}
                   </p>
@@ -957,8 +957,8 @@ export function HomeFeed() {
                               }}
                               className={
                                 selected
-                                  ? "h-8 rounded-full bg-[#1dbf73] px-3 text-xs font-semibold text-white"
-                                  : "h-8 rounded-full border border-[#e4e5e7] bg-white px-3 text-xs font-semibold text-[#222325] hover:border-[#1dbf73]"
+                                  ? "h-8 rounded-full bg-[#5B35F5] px-3 text-xs font-semibold text-white"
+                                  : "h-8 rounded-full border border-[#e4e5e7] bg-white px-3 text-xs font-semibold text-[#222325] hover:border-[#5B35F5]"
                               }
                             >
                               {label}
@@ -1018,7 +1018,7 @@ export function HomeFeed() {
                             className={
                               postCategory === cat
                                 ? "rounded-lg bg-primary px-2 py-2 text-xs font-semibold text-white"
-                                : "rounded-lg border border-border bg-white px-2 py-2 text-xs font-medium text-[#222325] hover:border-[#1dbf73]"
+                                : "rounded-lg border border-border bg-white px-2 py-2 text-xs font-medium text-[#222325] hover:border-[#5B35F5]"
                             }
                           >
                             {t(`categories.${cat}`)}
@@ -1053,7 +1053,7 @@ export function HomeFeed() {
                           value={postTitle}
                           onChange={(e) => setPostTitle(e.target.value)}
                           placeholder={t("postTitlePlaceholder")}
-                          className="mt-1.5 h-11 w-full rounded-lg border border-border bg-white px-3 text-sm text-[#222325] outline-none placeholder:text-[#95979d] focus-visible:border-[#1dbf73] focus-visible:ring-2 focus-visible:ring-[#1dbf73]/30"
+                          className="mt-1.5 h-11 w-full rounded-lg border border-border bg-white px-3 text-sm text-[#222325] outline-none placeholder:text-[#95979d] focus-visible:border-[#5B35F5] focus-visible:ring-2 focus-visible:ring-[#5B35F5]/30"
                         />
                       </label>
 
@@ -1072,7 +1072,7 @@ export function HomeFeed() {
                           <span className="text-xs font-semibold text-[#222325]">
                             {t("fieldPrice")} <span className="font-normal text-muted-foreground">({t("optional")})</span>
                           </span>
-                          <span className="mt-1.5 flex h-11 items-center rounded-lg border border-border bg-white focus-within:border-[#1dbf73] focus-within:ring-2 focus-within:ring-[#1dbf73]/30">
+                          <span className="mt-1.5 flex h-11 items-center rounded-lg border border-border bg-white focus-within:border-[#5B35F5] focus-within:ring-2 focus-within:ring-[#5B35F5]/30">
                             <span className="pl-3 text-sm text-muted-foreground">৳</span>
                             <input
                               value={postPrice}
@@ -1091,7 +1091,7 @@ export function HomeFeed() {
                             value={postYoutube}
                             onChange={(e) => setPostYoutube(e.target.value)}
                             placeholder="https://youtube.com/watch?v="
-                            className="mt-1.5 h-11 w-full rounded-lg border border-border bg-white px-3 text-sm outline-none placeholder:text-[#95979d] focus-visible:border-[#1dbf73] focus-visible:ring-2 focus-visible:ring-[#1dbf73]/30"
+                            className="mt-1.5 h-11 w-full rounded-lg border border-border bg-white px-3 text-sm outline-none placeholder:text-[#95979d] focus-visible:border-[#5B35F5] focus-visible:ring-2 focus-visible:ring-[#5B35F5]/30"
                           />
                         </label>
                       </div>
@@ -1101,7 +1101,7 @@ export function HomeFeed() {
                           {t("fieldAudio")} <span className="font-normal text-muted-foreground">({t("optional")})</span>
                         </p>
                         <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                          <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-border bg-white px-3 text-sm font-medium text-[#222325] hover:border-[#1dbf73]">
+                          <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-border bg-white px-3 text-sm font-medium text-[#222325] hover:border-[#5B35F5]">
                             <Upload className="size-4 text-primary" />
                             {uploading ? t("uploading") : t("uploadAudio")}
                             <input

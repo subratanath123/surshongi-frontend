@@ -44,7 +44,7 @@ export function ActivityScreen() {
         <button
           type="button"
           onClick={() => void load()}
-          className="h-10 rounded-full bg-[#1dbf73] px-4 text-sm font-semibold text-white"
+          className="h-10 rounded-full bg-[#5B35F5] px-4 text-sm font-semibold text-white"
         >
           {t("refresh")}
         </button>

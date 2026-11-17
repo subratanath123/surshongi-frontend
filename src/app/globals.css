@@ -8,20 +8,20 @@
   --card-foreground: #404145;
   --popover: #ffffff;
   --popover-foreground: #404145;
-  --primary: #1dbf73;
+  --primary: #5B35F5;
   --primary-foreground: #ffffff;
   --secondary: #f5f5f5;
   --secondary-foreground: #404145;
   --muted: #fafafa;
   --muted-foreground: #74767e;
-  --accent: #e8f8ef;
+  --accent: #F3EEFF;
   --accent-foreground: #404145;
   --destructive: #c73e2a;
   --border: #e4e5e7;
   --input: #e4e5e7;
-  --ring: #1dbf73;
+  --ring: #5B35F5;
   --amber: #ffb33e;
-  --sunset: #1dbf73;
+  --sunset: #ff3d86;
   --teal: #74767e;
   --radius: 0.5rem;
   --dock-bottom: 0px;
@@ -96,8 +96,8 @@ h1, h2, h3, .font-display {
 }
 
 ::selection {
-  background: var(--amber);
-  color: var(--primary-foreground);
+  background: #e4d9ff;
+  color: #2a1248;
 }
 
 :focus-visible {
@@ -115,7 +115,7 @@ h1, h2, h3, .font-display {
   max-width: 0.45rem;
   transform-origin: center bottom;
   border-radius: 999px;
-  background: linear-gradient(to top, #c4a574, var(--amber) 55%, #f0a202);
+  background: var(--primary);
   animation: wave 1.8s ease-in-out infinite;
 }
 

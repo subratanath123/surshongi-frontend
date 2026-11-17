@@ -798,12 +798,12 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                     {youtube ? (
                       <YoutubePlayer videoId={item.youtubeId!} title={itemTitle} flush />
                     ) : item.kind === "audio" && item.audioSrc ? (
-                      <div className={featured ? "bg-[#16181d] p-4 sm:p-6" : "bg-[#f3fbf6] p-4"}>
+                      <div className={featured ? "bg-[#16181d] p-4 sm:p-6" : "bg-[#F6F3FF] p-4"}>
                         <div className="mb-3 flex h-16 items-end gap-1" aria-hidden>
                           {[18, 32, 24, 48, 36, 58, 28, 44, 22, 40, 16, 34].map((height, bar) => (
                             <span
                               key={bar}
-                              className="w-1.5 rounded-full bg-[#1dbf73]"
+                              className="w-1.5 rounded-full bg-primary"
                               style={{ height, opacity: featured ? 0.9 : 0.75 }}
                             />
                           ))}
@@ -815,7 +815,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                       <h3 className={featured ? "font-display text-xl leading-tight" : "text-sm font-semibold text-[#222325]"}>
                         {itemTitle}
                       </h3>
-                      <span className={featured ? "shrink-0 text-xs font-semibold text-[#1dbf73]" : "shrink-0 text-xs font-medium text-muted-foreground"}>
+                      <span className={featured ? "shrink-0 text-xs font-semibold text-[#E7C4FF]" : "shrink-0 text-xs font-medium text-muted-foreground"}>
                         {item.kind === "youtube" ? "YouTube" : "Audio"}
                       </span>
                     </div>

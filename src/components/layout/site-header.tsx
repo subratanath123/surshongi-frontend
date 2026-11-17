@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { CircleHelp, Scissors, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Mark } from "@/components/brand/mark";
 import { HeaderAuthPill } from "@/components/layout/header-auth-pill";
 import { HeaderSearch } from "@/components/layout/header-search";
 import { LanguageToggle } from "@/components/layout/language-toggle";
@@ -26,10 +25,7 @@ export function SiteHeader() {
             window.dispatchEvent(new Event("sur-home-feed"));
           }}
         >
-          <Mark className="size-7 text-primary" />
-          <span className="hidden truncate text-lg font-bold tracking-tight text-foreground min-[420px]:inline">
-            {t("brand")}
-          </span>
+          <img src="/brand/logo-wordmark.png" alt="" className="h-8 w-auto sm:h-9" />
         </Link>
 
         <HeaderSearch />

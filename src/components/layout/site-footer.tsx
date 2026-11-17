@@ -1,5 +1,4 @@
 import { useTranslations } from "next-intl";
-import { Mark } from "@/components/brand/mark";
 import { Link } from "@/i18n/navigation";
 
 export function SiteFooter() {
@@ -11,8 +10,7 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:flex-row sm:items-end sm:justify-between sm:px-5">
         <div className="max-w-md">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Mark className="text-primary" />
-            <span className="text-base font-semibold">{nav("brand")}</span>
+            <img src="/brand/logo-wordmark.png" alt="" className="h-8 w-auto" />
           </Link>
           <p className="mt-3 text-sm leading-6 text-white/70">{t("blurb")}</p>
         </div>
