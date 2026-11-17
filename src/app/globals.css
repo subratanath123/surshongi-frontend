@@ -8,21 +8,23 @@
   --card-foreground: #404145;
   --popover: #ffffff;
   --popover-foreground: #404145;
-  --primary: #5B35F5;
+  --primary: #0d8bff;
   --primary-foreground: #ffffff;
   --secondary: #f5f5f5;
-  --secondary-foreground: #404145;
+  --secondary-foreground: #0b184d;
   --muted: #fafafa;
-  --muted-foreground: #74767e;
-  --accent: #F3EEFF;
-  --accent-foreground: #404145;
+  --muted-foreground: #5c6478;
+  --accent: #e7f3ff;
+  --accent-foreground: #0b184d;
   --destructive: #c73e2a;
   --border: #e4e5e7;
   --input: #e4e5e7;
-  --ring: #5B35F5;
+  --ring: #0d8bff;
   --amber: #ffb33e;
-  --sunset: #ff3d86;
-  --teal: #74767e;
+  --sunset: #ff2d7a;
+  --violet: #7a00ff;
+  --navy: #0b184d;
+  --teal: #5c6478;
   --radius: 0.5rem;
   --dock-bottom: 0px;
   --dock-right: 0px;
@@ -53,13 +55,15 @@
   --color-ring: var(--ring);
   --color-amber: var(--amber);
   --color-sunset: var(--sunset);
+  --color-violet: var(--violet);
+  --color-navy: var(--navy);
   --color-teal: var(--teal);
   --radius-lg: var(--radius);
   --radius-xl: 0.75rem;
   --radius-2xl: 0.75rem;
   --radius-3xl: 1rem;
-  --font-sans: var(--font-inter), var(--font-noto-bn), "Segoe UI", "Nirmala UI", system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-jakarta), var(--font-noto-bn), var(--font-inter), "Segoe UI", "Nirmala UI", sans-serif;
+  --font-sans: var(--font-poppins), var(--font-noto-bn), var(--font-inter), "Segoe UI", "Nirmala UI", system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-poppins), var(--font-noto-bn), var(--font-inter), "Segoe UI", "Nirmala UI", sans-serif;
 }
 
 html {
@@ -96,8 +100,8 @@ h1, h2, h3, .font-display {
 }
 
 ::selection {
-  background: #e4d9ff;
-  color: #2a1248;
+  background: #d6ebff;
+  color: #0B184D;
 }
 
 :focus-visible {
@@ -115,7 +119,7 @@ h1, h2, h3, .font-display {
   max-width: 0.45rem;
   transform-origin: center bottom;
   border-radius: 999px;
-  background: var(--primary);
+  background: linear-gradient(to top, #0d8bff, #7a00ff 55%, #ff2d7a);
   animation: wave 1.8s ease-in-out infinite;
 }
 

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export function VerifiedMark({ className, label }: { className?: string; label: string }) {
   return (
     <BadgeCheck
-      className={cn("shrink-0 fill-[#1d9bf0] text-white", className)}
+      className={cn("shrink-0 fill-[#0D8BFF] text-white", className)}
       aria-label={label}
       role="img"
     />

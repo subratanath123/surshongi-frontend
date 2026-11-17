@@ -76,7 +76,7 @@ export function PaymentCheck({
 
   const tone =
     status === "confirmed"
-      ? "border-[#5B35F5] bg-[#F3EEFF] text-[#3B1A8A]"
+      ? "border-[#0D8BFF] bg-[#E7F3FF] text-[#0B184D]"
       : status === "disputed"
         ? "border-[#e4e5e7] bg-[#fff4f4] text-[#9b1c1c]"
         : "border-[#e4e5e7] bg-[#fafafa] text-[#404145]";
@@ -129,13 +129,13 @@ export function PaymentCheck({
             autoComplete="off"
             spellCheck={false}
             placeholder="8N7A6B5C4D"
-            className="h-8 w-full rounded-md border border-[#e4e5e7] bg-white px-2 font-mono text-xs uppercase outline-none focus:border-[#5B35F5]"
+            className="h-8 w-full rounded-md border border-[#e4e5e7] bg-white px-2 font-mono text-xs uppercase outline-none focus:border-[#0D8BFF]"
           />
           <p className="text-[10px] opacity-80">{t("trxHint")}</p>
           <button
             type="submit"
             disabled={busy || trx.trim().length < 6}
-            className="h-8 rounded-full bg-[#5B35F5] px-3 text-[11px] font-semibold text-white disabled:opacity-50"
+            className="h-8 rounded-full bg-primary px-3 text-[11px] font-semibold text-white disabled:opacity-50"
           >
             {busy ? "…" : t("saveTrx")}
           </button>
@@ -148,7 +148,7 @@ export function PaymentCheck({
             type="button"
             disabled={busy}
             onClick={() => void confirm()}
-            className="h-8 rounded-full bg-[#5B35F5] px-3 text-[11px] font-semibold text-white disabled:opacity-50"
+            className="h-8 rounded-full bg-primary px-3 text-[11px] font-semibold text-white disabled:opacity-50"
           >
             {busy && !disputing ? "…" : t("confirm")}
           </button>
@@ -171,7 +171,7 @@ export function PaymentCheck({
             maxLength={240}
             rows={2}
             placeholder={t("disputeNote")}
-            className="w-full rounded-md border border-[#e4e5e7] bg-white px-2 py-1.5 text-xs outline-none focus:border-[#5B35F5]"
+            className="w-full rounded-md border border-[#e4e5e7] bg-white px-2 py-1.5 text-xs outline-none focus:border-[#0D8BFF]"
           />
           <button
             type="submit"

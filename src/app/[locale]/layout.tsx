@@ -14,7 +14,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { PwaRegister } from "@/components/pwa/pwa-register";
 import { ProfileCompletionGuard } from "@/components/register/profile-completion-guard";
 import { routing } from "@/i18n/routing";
-import { inter, notoBengali, plusJakarta } from "@/lib/fonts";
+import { inter, notoBengali, poppins } from "@/lib/fonts";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -71,7 +71,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
-  themeColor: "#5B35F5",
+  themeColor: "#0D8BFF",
 };
 
 export default async function LocaleLayout({
@@ -90,7 +90,7 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       data-scroll-behavior="smooth"
-      className={`${inter.variable} ${plusJakarta.variable} ${notoBengali.variable} h-full antialiased`}
+      className={`${poppins.variable} ${inter.variable} ${notoBengali.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
         <a

@@ -22,7 +22,7 @@ export function HeaderAuthPill() {
       <div className="relative flex items-center gap-1.5">
         <Link
           href={`/u/${user.id}`}
-          className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-2.5 text-xs font-semibold text-foreground hover:border-[#5B35F5]"
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-2.5 text-xs font-semibold text-foreground hover:border-[#0D8BFF]"
         >
           <span className="grid size-6 place-items-center rounded-full bg-[#222325] text-[11px] font-bold text-white">
             {name.slice(0, 1)}
@@ -33,20 +33,20 @@ export function HeaderAuthPill() {
           {admin ? (
             <Link
               href="/activity"
-              className="inline-flex h-10 items-center rounded-lg border border-border bg-white px-3 text-xs font-semibold text-[#222325] hover:border-[#5B35F5]"
+              className="inline-flex h-10 items-center rounded-lg border border-border bg-white px-3 text-xs font-semibold text-[#222325] hover:border-[#0D8BFF]"
             >
               {t("activity")}
             </Link>
           ) : null}
           <Link
             href="/orders"
-            className="inline-flex h-10 items-center rounded-lg border border-border bg-white px-3 text-xs font-semibold text-[#222325] hover:border-[#5B35F5]"
+            className="inline-flex h-10 items-center rounded-lg border border-border bg-white px-3 text-xs font-semibold text-[#222325] hover:border-[#0D8BFF]"
           >
             {t("orders")}
           </Link>
           <Link
             href="/register"
-            className="inline-flex h-10 items-center rounded-lg border border-border bg-white px-3 text-xs font-semibold text-[#222325] hover:border-[#5B35F5]"
+            className="inline-flex h-10 items-center rounded-lg border border-border bg-white px-3 text-xs font-semibold text-[#222325] hover:border-[#0D8BFF]"
           >
             {t("editProfile")}
           </Link>

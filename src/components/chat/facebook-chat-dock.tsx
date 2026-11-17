@@ -990,9 +990,9 @@ function ChatBox({
             ref={threadContainerRef}
             className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
           >
-            <div className="mt-auto space-y-3 p-4">
+            <div className="mt-auto flex flex-col gap-1.5 p-3">
             {threadMessages.length === 0 ? (
-              <p className="text-base leading-7 text-muted-foreground">{t("emptyChat")}</p>
+              <p className="px-1 text-sm leading-6 text-muted-foreground">{t("emptyChat")}</p>
             ) : (
               threadMessages.map((msg) => {
                 const mine = msg.fromId === activeUserId;
@@ -1002,8 +1002,8 @@ function ChatBox({
                     key={msg.id}
                     className={
                       mine
-                        ? "ml-12 rounded-lg rounded-br-sm bg-[#161311] px-4 py-3 text-base font-medium text-[#f7f1e6] shadow-sm"
-                        : "mr-12 rounded-lg rounded-bl-sm border border-border bg-white px-4 py-3 text-base text-foreground"
+                        ? "ml-auto w-fit max-w-[80%] rounded-2xl rounded-br-md bg-primary px-3 py-2 text-sm leading-5 text-white"
+                        : "mr-auto w-fit max-w-[80%] rounded-2xl rounded-bl-md bg-[#f0f2f5] px-3 py-2 text-sm leading-5 text-foreground"
                     }
                   >
                     <PostQuote messagePostId={msg.postId} posts={db.posts} locale={locale} label={t("aboutPost")} mine={mine} />
@@ -1026,7 +1026,7 @@ function ChatBox({
 
           <form
             onSubmit={(e) => void handleSend(e)}
-            className="shrink-0 border-t border-border bg-secondary p-3"
+            className="shrink-0 border-t border-border bg-white px-2 py-2"
           >
             {referencedPost ? (
               <div className="mb-2 flex items-start justify-between gap-2 rounded-xl border border-border bg-white px-3 py-2">
@@ -1061,23 +1061,21 @@ function ChatBox({
               </div>
             ) : null}
 
-            <div className="flex items-end gap-2">
+            <div className="flex items-end gap-1">
               <label
-                className="inline-flex h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-white px-3.5 text-xs font-medium text-foreground hover:border-primary"
+                className="mb-0.5 grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-primary hover:bg-secondary"
                 title={
                   locale === "bn"
                     ? "অডিও বা ভিডিও ফাইল সংযুক্ত করো"
                     : "Attach audio or video file"
                 }
+                aria-label={
+                  locale === "bn"
+                    ? "অডিও বা ভিডিও ফাইল সংযুক্ত করো"
+                    : "Attach audio or video file"
+                }
               >
-                <Paperclip className="size-4 text-primary" />
-                <span className="hidden sm:inline">
-                  {uploadingChatFile
-                    ? "…"
-                    : locale === "bn"
-                      ? "অডিও/ভিডিও"
-                      : "Audio/Video"}
-                </span>
+                <Paperclip className="size-5" />
                 <input
                   type="file"
                   accept="audio/*,video/*"
@@ -1105,15 +1103,15 @@ function ChatBox({
                 }}
                 placeholder={t("chatPlaceholder")}
                 aria-label={t("messageLabel")}
-                className="min-h-14 min-w-0 flex-1 resize-none rounded-2xl border border-border bg-white px-4 py-2 text-sm leading-5 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="max-h-28 min-h-11 min-w-0 flex-1 resize-none rounded-2xl border-0 bg-[#f0f2f5] px-3.5 py-2.5 text-sm leading-5 text-foreground outline-none placeholder:text-[#65676b] focus-visible:ring-2 focus-visible:ring-primary"
               />
               <button
                 type="submit"
                 disabled={(!text.trim() && !chatAttachment && !referencedPost) || uploadingChatFile}
-                className="inline-flex h-11 items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-md disabled:opacity-40"
+                aria-label={t("send")}
+                className="mb-0.5 grid size-9 shrink-0 place-items-center rounded-full bg-primary text-white disabled:bg-[#e4e6eb] disabled:text-[#bcc0c4]"
               >
                 <Send className="size-4" />
-                <span>{t("send")}</span>
               </button>
             </div>
           </form>

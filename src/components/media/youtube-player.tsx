@@ -99,9 +99,9 @@ export function YoutubePlayer({ videoId, title, flush = false }: YoutubePlayerPr
         sizes="(max-width: 1024px) 100vw, 960px"
         className="object-cover scale-125"
       />
-      <span className="absolute inset-0 grid place-items-center bg-black/20">
-        <span className="grid size-16 place-items-center rounded-full bg-primary text-primary-foreground shadow-xl shadow-[#ff5500]/30 transition-transform hover:scale-105">
-          <Play className="size-7 fill-current" aria-hidden />
+      <span className="absolute inset-0 grid place-items-center">
+        <span className="grid size-14 place-items-center rounded-full bg-white/95 text-[#222325] shadow-md">
+          <Play className="size-6 translate-x-0.5 fill-current" aria-hidden />
         </span>
       </span>
       <span className="sr-only">{title}</span>

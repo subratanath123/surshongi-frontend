@@ -56,17 +56,17 @@ export function HowGuide() {
             <li key={card.key}>
               <Link
                 href={card.href}
-                className="group flex h-full gap-4 rounded-xl border border-border bg-white p-4 shadow-sm transition-colors hover:border-[#5B35F5]"
+                className="group flex h-full gap-4 rounded-xl border border-border bg-white p-4 shadow-sm transition-colors hover:border-[#0D8BFF]"
               >
-                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-[#F3EEFF] text-[#5B35F5]">
+                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-[#E7F3FF] text-[#0D8BFF]">
                   <Icon className="size-5" aria-hidden />
                 </span>
                 <span className="min-w-0">
                   <span className="flex items-center justify-between gap-3">
-                    <span className="font-display text-base font-semibold text-[#222325] group-hover:text-[#5B35F5]">
+                    <span className="font-display text-base font-semibold text-[#222325] group-hover:text-[#0D8BFF]">
                       {t(`${card.key}.title`)}
                     </span>
-                    <span className="shrink-0 text-xs font-semibold text-[#5B35F5]">{t("open")}</span>
+                    <span className="shrink-0 text-xs font-semibold text-[#0D8BFF]">{t("open")}</span>
                   </span>
                   <span className="mt-1 block text-sm leading-6 text-muted-foreground">
                     {t(`${card.key}.body`)}

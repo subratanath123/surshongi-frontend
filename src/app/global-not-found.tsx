@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { inter, notoBengali, plusJakarta } from "@/lib/fonts";
+import { inter, notoBengali, poppins } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default function GlobalNotFound() {
     <html
       lang="bn"
       data-scroll-behavior="smooth"
-      className={`dark ${inter.variable} ${plusJakarta.variable} ${notoBengali.variable} h-full antialiased`}
+      className={`dark ${poppins.variable} ${inter.variable} ${notoBengali.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-background font-sans text-foreground">
         <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-5 py-24">

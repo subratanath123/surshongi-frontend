@@ -195,7 +195,7 @@ function CategoryCard({
       aria-pressed={pressed}
       onClick={onPick}
       className={`relative aspect-[16/10] overflow-hidden rounded-xl ${
-        pressed ? "ring-2 ring-[#5B35F5] ring-offset-2" : ""
+        pressed ? "ring-2 ring-[#0D8BFF] ring-offset-2" : ""
       }`}
     >
       <img
@@ -234,7 +234,7 @@ function CategoryBand({
 
   return (
     <section id={sectionId} className="mt-6 scroll-mt-24">
-      <h2 className="text-sm font-semibold text-[#222325]">{title}</h2>
+      <h2 className="text-sm font-semibold text-[#0B184D]">{title}</h2>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {preview.map((tile) => (
           <CategoryCard
@@ -272,7 +272,7 @@ function CategoryBand({
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((current) => !current)}
-          className="mt-3 w-full rounded-lg border border-border bg-white py-2 text-sm font-semibold text-[#222325] transition-colors hover:border-[#5B35F5] hover:text-[#5B35F5]"
+          className="mt-3 w-full rounded-lg border border-border bg-white py-2 text-sm font-semibold text-[#0B184D] transition-colors hover:border-[#0D8BFF] hover:text-[#0D8BFF]"
         >
           {open ? t("seeLess") : t("seeMore")}
         </button>
@@ -663,7 +663,7 @@ export function HomeFeed() {
         <div className="overflow-hidden">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
-              <h1 className="font-display text-3xl font-bold tracking-tight text-[#222325] sm:text-5xl">
+              <h1 className="font-display text-3xl font-bold tracking-tight text-[#0B184D] sm:text-5xl">
                 {t("title")}
               </h1>
               <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">{t("lead")}</p>
@@ -691,7 +691,7 @@ export function HomeFeed() {
         ref={searchRef}
         className={`${service ? "hidden" : "sticky top-16 z-30"} mt-6 flex scroll-mt-20 origin-top items-center gap-2 rounded-md border bg-white p-2 transition-all duration-500 ease-out ${
           searchActive
-            ? "scale-[1.03] border-[#5B35F5] shadow-[0_16px_40px_rgba(91,53,245,0.18)] ring-2 ring-[#5B35F5]/30"
+            ? "scale-[1.03] border-[#0D8BFF] shadow-[0_16px_40px_rgba(13,139,255,0.22)] ring-2 ring-[#0D8BFF]/30"
             : "border-[#e4e5e7] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_8px_24px_rgba(0,0,0,0.06)]"
         }`}
         onSubmit={(e) => void handleSemanticSearch(e)}
@@ -769,7 +769,7 @@ export function HomeFeed() {
             onClear={clearSearch}
           />
           <section className="mt-6" aria-labelledby="related-posts-heading">
-            <h2 id="related-posts-heading" className="font-display text-xl font-bold text-[#222325]">
+            <h2 id="related-posts-heading" className="font-display text-xl font-bold text-[#0B184D]">
               {t("relatedPosts")}
             </h2>
             {relatedPosts.length === 0 ? (
@@ -843,7 +843,7 @@ export function HomeFeed() {
               {service ? (
                 <div>
                   <div className="flex items-center justify-between gap-3">
-                    <h2 id="directory-heading" className="min-w-0 truncate font-display text-xl font-bold text-[#222325]">
+                    <h2 id="directory-heading" className="min-w-0 truncate font-display text-xl font-bold text-[#0B184D]">
                       {t(`services.${service}`)}
                     </h2>
                     <button
@@ -852,7 +852,7 @@ export function HomeFeed() {
                         setService(null);
                         setFilter("all");
                       }}
-                      className="shrink-0 text-sm font-semibold text-[#5B35F5]"
+                      className="shrink-0 text-sm font-semibold text-[#0D8BFF]"
                     >
                       {t("showCategories")}
                     </button>
@@ -870,8 +870,8 @@ export function HomeFeed() {
                         onClick={() => pickService(tile.id)}
                         className={
                           service === tile.id
-                            ? "shrink-0 rounded-full bg-[#5B35F5] px-3 py-2 text-xs font-semibold text-white"
-                            : "shrink-0 rounded-full border border-[#e4e5e7] bg-white px-3 py-2 text-xs font-semibold text-[#222325]"
+                            ? "shrink-0 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-white"
+                            : "shrink-0 rounded-full border border-[#e4e5e7] bg-white px-3 py-2 text-xs font-semibold text-[#0B184D]"
                         }
                       >
                         {t(`services.${tile.id}`)}
@@ -929,9 +929,9 @@ export function HomeFeed() {
                   className="scroll-mt-24 rounded-xl border border-border bg-white p-4 shadow-sm"
                   aria-busy={prefsBusy}
                 >
-                  <p className="flex items-center gap-2 text-xs font-semibold text-[#222325]">
+                  <p className="flex items-center gap-2 text-xs font-semibold text-[#0B184D]">
                     {prefsBusy ? (
-                      <Loader2 className="size-3.5 animate-spin text-[#5B35F5]" aria-hidden="true" />
+                      <Loader2 className="size-3.5 animate-spin text-[#0D8BFF]" aria-hidden="true" />
                     ) : null}
                     {t("feedPrefsLabel")}
                   </p>
@@ -957,8 +957,8 @@ export function HomeFeed() {
                               }}
                               className={
                                 selected
-                                  ? "h-8 rounded-full bg-[#5B35F5] px-3 text-xs font-semibold text-white"
-                                  : "h-8 rounded-full border border-[#e4e5e7] bg-white px-3 text-xs font-semibold text-[#222325] hover:border-[#5B35F5]"
+                                  ? "h-8 rounded-full bg-primary px-3 text-xs font-semibold text-white"
+                                  : "h-8 rounded-full border border-[#e4e5e7] bg-white px-3 text-xs font-semibold text-[#0B184D] hover:border-[#0D8BFF]"
                               }
                             >
                               {label}
@@ -993,7 +993,7 @@ export function HomeFeed() {
                           textClassName="text-sm"
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-[#222325]">{t("composerTitle")}</p>
+                          <p className="text-sm font-semibold text-[#0B184D]">{t("composerTitle")}</p>
                           <p className="truncate text-xs text-muted-foreground">
                             {currentUser ? currentUser.name : t("composerHint")}
                           </p>
@@ -1018,7 +1018,7 @@ export function HomeFeed() {
                             className={
                               postCategory === cat
                                 ? "rounded-lg bg-primary px-2 py-2 text-xs font-semibold text-white"
-                                : "rounded-lg border border-border bg-white px-2 py-2 text-xs font-medium text-[#222325] hover:border-[#5B35F5]"
+                                : "rounded-lg border border-border bg-white px-2 py-2 text-xs font-medium text-[#0B184D] hover:border-[#0D8BFF]"
                             }
                           >
                             {t(`categories.${cat}`)}
@@ -1027,7 +1027,7 @@ export function HomeFeed() {
                       </div>
 
                       <fieldset className="mt-4">
-                        <legend className="text-xs font-semibold text-[#222325]">{t("fieldRole")}</legend>
+                        <legend className="text-xs font-semibold text-[#0B184D]">{t("fieldRole")}</legend>
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {roles.map((r) => (
                             <button
@@ -1048,17 +1048,17 @@ export function HomeFeed() {
                       </fieldset>
 
                       <label className="mt-4 block">
-                        <span className="text-xs font-semibold text-[#222325]">{t("fieldTitle")}</span>
+                        <span className="text-xs font-semibold text-[#0B184D]">{t("fieldTitle")}</span>
                         <input
                           value={postTitle}
                           onChange={(e) => setPostTitle(e.target.value)}
                           placeholder={t("postTitlePlaceholder")}
-                          className="mt-1.5 h-11 w-full rounded-lg border border-border bg-white px-3 text-sm text-[#222325] outline-none placeholder:text-[#95979d] focus-visible:border-[#5B35F5] focus-visible:ring-2 focus-visible:ring-[#5B35F5]/30"
+                          className="mt-1.5 h-11 w-full rounded-lg border border-border bg-white px-3 text-sm text-[#0B184D] outline-none placeholder:text-[#95979d] focus-visible:border-[#0D8BFF] focus-visible:ring-2 focus-visible:ring-[#0D8BFF]/30"
                         />
                       </label>
 
                       <div className="mt-3">
-                        <span className="text-xs font-semibold text-[#222325]">{t("fieldBody")}</span>
+                        <span className="text-xs font-semibold text-[#0B184D]">{t("fieldBody")}</span>
                         <RichTextField
                           value={postText}
                           onChange={setPostText}
@@ -1069,10 +1069,10 @@ export function HomeFeed() {
 
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         <label className="block">
-                          <span className="text-xs font-semibold text-[#222325]">
+                          <span className="text-xs font-semibold text-[#0B184D]">
                             {t("fieldPrice")} <span className="font-normal text-muted-foreground">({t("optional")})</span>
                           </span>
-                          <span className="mt-1.5 flex h-11 items-center rounded-lg border border-border bg-white focus-within:border-[#5B35F5] focus-within:ring-2 focus-within:ring-[#5B35F5]/30">
+                          <span className="mt-1.5 flex h-11 items-center rounded-lg border border-border bg-white focus-within:border-[#0D8BFF] focus-within:ring-2 focus-within:ring-[#0D8BFF]/30">
                             <span className="pl-3 text-sm text-muted-foreground">৳</span>
                             <input
                               value={postPrice}
@@ -1084,24 +1084,24 @@ export function HomeFeed() {
                           </span>
                         </label>
                         <label className="block">
-                          <span className="text-xs font-semibold text-[#222325]">
+                          <span className="text-xs font-semibold text-[#0B184D]">
                             {t("fieldYoutube")} <span className="font-normal text-muted-foreground">({t("optional")})</span>
                           </span>
                           <input
                             value={postYoutube}
                             onChange={(e) => setPostYoutube(e.target.value)}
                             placeholder="https://youtube.com/watch?v="
-                            className="mt-1.5 h-11 w-full rounded-lg border border-border bg-white px-3 text-sm outline-none placeholder:text-[#95979d] focus-visible:border-[#5B35F5] focus-visible:ring-2 focus-visible:ring-[#5B35F5]/30"
+                            className="mt-1.5 h-11 w-full rounded-lg border border-border bg-white px-3 text-sm outline-none placeholder:text-[#95979d] focus-visible:border-[#0D8BFF] focus-visible:ring-2 focus-visible:ring-[#0D8BFF]/30"
                           />
                         </label>
                       </div>
 
                       <div className="mt-3">
-                        <p className="text-xs font-semibold text-[#222325]">
+                        <p className="text-xs font-semibold text-[#0B184D]">
                           {t("fieldAudio")} <span className="font-normal text-muted-foreground">({t("optional")})</span>
                         </p>
                         <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                          <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-border bg-white px-3 text-sm font-medium text-[#222325] hover:border-[#5B35F5]">
+                          <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-border bg-white px-3 text-sm font-medium text-[#0B184D] hover:border-[#0D8BFF]">
                             <Upload className="size-4 text-primary" />
                             {uploading ? t("uploading") : t("uploadAudio")}
                             <input
@@ -1122,7 +1122,7 @@ export function HomeFeed() {
                             />
                           </label>
                           {postAudio ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-secondary py-1 pr-1 pl-3 text-xs text-[#222325]">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-secondary py-1 pr-1 pl-3 text-xs text-[#0B184D]">
                               {t("audioAttached")}
                               <button
                                 type="button"
@@ -1170,7 +1170,7 @@ export function HomeFeed() {
                         textClassName="text-sm"
                       />
                       <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-[#222325]">{t("composerPrompt")}</span>
+                        <span className="block text-sm font-semibold text-[#0B184D]">{t("composerPrompt")}</span>
                         <span className="block text-xs text-muted-foreground">{t("composerHint")}</span>
                       </span>
                     </button>
@@ -1596,7 +1596,7 @@ function PostCard({
           </h3>
           <RichText
             text={fullText}
-            className={`mt-1.5 space-y-1 text-[14.5px] leading-relaxed break-words text-[#222325] ${
+            className={`mt-1.5 space-y-1 text-[14.5px] leading-relaxed break-words text-[#0B184D] ${
               !expanded && isLong ? "line-clamp-6" : ""
             }`}
           />
@@ -1866,7 +1866,7 @@ function PersonCard({
           />
           <div className="mt-2 flex items-start justify-between gap-2">
             <Link href={`/u/${person.id}`} className="group min-w-0">
-              <span className="block truncate font-semibold text-[#222325] group-hover:underline">
+              <span className="block truncate font-semibold text-[#0B184D] group-hover:underline">
                 {name}
               </span>
               <span className="block truncate text-xs text-muted-foreground">

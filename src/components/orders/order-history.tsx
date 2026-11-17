@@ -35,7 +35,7 @@ function Step({
   return (
     <li className="flex items-start gap-2">
       <span
-        className={`mt-1 size-2 shrink-0 rounded-full ${at ? "bg-[#5B35F5]" : "bg-[#e4e5e7]"}`}
+        className={`mt-1 size-2 shrink-0 rounded-full ${at ? "bg-primary" : "bg-[#e4e5e7]"}`}
       />
       <span>
         <span className="block text-xs font-semibold text-[#222325]">{label}</span>
@@ -71,13 +71,13 @@ function OrderCard({
           <h2 className="text-base font-semibold text-[#222325]">{order.title}</h2>
           <p className="mt-1 text-xs text-[#74767e]">
             {t("with")}{" "}
-            <Link href={`/u/${otherId}`} className="font-semibold text-[#222325] hover:text-[#5B35F5]">
+            <Link href={`/u/${otherId}`} className="font-semibold text-[#222325] hover:text-[#0D8BFF]">
               {otherName}
             </Link>
             {" · "}৳{formatNumber(order.priceBdt, locale)} · {order.deliveryDays}d
           </p>
         </div>
-        <span className="rounded-full bg-[#F3EEFF] px-2.5 py-1 text-[11px] font-semibold text-[#3B1A8A]">
+        <span className="rounded-full bg-[#E7F3FF] px-2.5 py-1 text-[11px] font-semibold text-[#0B184D]">
           {work}
         </span>
       </div>
@@ -93,7 +93,7 @@ function OrderCard({
       <button
         type="button"
         onClick={() => openChatWindow(otherId)}
-        className="mt-3 h-8 rounded-full border border-[#e4e5e7] px-3 text-[11px] font-semibold text-[#222325] hover:border-[#5B35F5]"
+        className="mt-3 h-8 rounded-full border border-[#e4e5e7] px-3 text-[11px] font-semibold text-[#222325] hover:border-[#0D8BFF]"
       >
         {t("openChat")}
       </button>
@@ -115,7 +115,7 @@ export function OrderHistory() {
         <p className="mt-3 text-sm text-[#74767e]">{t("signIn")}</p>
         <Link
           href="/register"
-          className="mt-4 inline-flex h-10 items-center rounded-lg bg-[#5B35F5] px-4 text-sm font-semibold text-white"
+          className="mt-4 inline-flex h-10 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-white"
         >
           {nav("register")}
         </Link>

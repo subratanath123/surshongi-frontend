@@ -5,7 +5,7 @@ import { Bold, Italic, Link2, List } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 const fieldClass =
-  "w-full resize-y rounded-b-lg border border-t-0 border-border bg-white px-3 py-2.5 text-sm leading-6 text-[#222325] outline-none placeholder:text-[#95979d] focus-visible:border-[#5B35F5] focus-visible:ring-2 focus-visible:ring-[#5B35F5]/30";
+  "w-full resize-y rounded-b-lg border border-t-0 border-border bg-white px-3 py-2.5 text-sm leading-6 text-[#222325] outline-none placeholder:text-[#95979d] focus-visible:border-[#0D8BFF] focus-visible:ring-2 focus-visible:ring-[#0D8BFF]/30";
 
 export function RichTextField({
   value,

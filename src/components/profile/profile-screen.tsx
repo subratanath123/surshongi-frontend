@@ -511,7 +511,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                       <button
                         type="button"
                         onClick={() => setSelfieOpen(true)}
-                        className="h-9 rounded-full border border-[#1d9bf0] bg-white px-4 text-xs font-semibold text-[#1d9bf0] hover:bg-[#1d9bf0]/10"
+                        className="h-9 rounded-full border border-[#0D8BFF] bg-white px-4 text-xs font-semibold text-[#0D8BFF] hover:bg-primary/10"
                       >
                         {profile.selfieVerified ? t("verifyProfileRetake") : t("verifyProfile")}
                       </button>
@@ -791,14 +791,14 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                     key={item.id}
                     className={
                       featured
-                        ? "overflow-hidden rounded-2xl border border-[#222325] bg-[#16181d] text-white shadow-[0_18px_40px_rgba(17,17,17,0.16)] lg:col-span-2"
+                        ? "overflow-hidden rounded-2xl border border-[#0B184D] bg-[#0B184D] text-white shadow-[0_18px_40px_rgba(11,24,77,0.18)] lg:col-span-2"
                         : "overflow-hidden rounded-2xl border border-border bg-white shadow-sm"
                     }
                   >
                     {youtube ? (
                       <YoutubePlayer videoId={item.youtubeId!} title={itemTitle} flush />
                     ) : item.kind === "audio" && item.audioSrc ? (
-                      <div className={featured ? "bg-[#16181d] p-4 sm:p-6" : "bg-[#F6F3FF] p-4"}>
+                      <div className={featured ? "bg-[#0B184D] p-4 sm:p-6" : "bg-[#E7F3FF] p-4"}>
                         <div className="mb-3 flex h-16 items-end gap-1" aria-hidden>
                           {[18, 32, 24, 48, 36, 58, 28, 44, 22, 40, 16, 34].map((height, bar) => (
                             <span
@@ -815,7 +815,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                       <h3 className={featured ? "font-display text-xl leading-tight" : "text-sm font-semibold text-[#222325]"}>
                         {itemTitle}
                       </h3>
-                      <span className={featured ? "shrink-0 text-xs font-semibold text-[#E7C4FF]" : "shrink-0 text-xs font-medium text-muted-foreground"}>
+                      <span className={featured ? "shrink-0 text-xs font-semibold text-[#B9E6FF]" : "shrink-0 text-xs font-medium text-muted-foreground"}>
                         {item.kind === "youtube" ? "YouTube" : "Audio"}
                       </span>
                     </div>

@@ -6,7 +6,7 @@ export function SiteFooter() {
   const nav = useTranslations("Nav");
 
   return (
-    <footer className="mt-10 bg-[#222325] text-white">
+    <footer className="mt-10 bg-[#0B184D] text-white">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:flex-row sm:items-end sm:justify-between sm:px-5">
         <div className="max-w-md">
           <Link href="/" className="inline-flex items-center gap-2">

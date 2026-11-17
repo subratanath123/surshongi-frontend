@@ -9,7 +9,7 @@ export function SaveProgress() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-0 z-[70] h-1 overflow-hidden bg-[#F3EEFF]"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[70] h-1 overflow-hidden bg-[#E7F3FF]"
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}

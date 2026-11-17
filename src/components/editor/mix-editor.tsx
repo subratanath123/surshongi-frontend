@@ -1114,10 +1114,10 @@ export function MixEditor() {
           ) : null}
           <div
             ref={playheadRef}
-            className="pointer-events-none absolute top-0 bottom-0 z-10 w-0.5 bg-[#5B35F5]"
+            className="pointer-events-none absolute top-0 bottom-0 z-10 w-0.5 bg-primary"
             style={{ left: headerW }}
           >
-            <span className="absolute -top-0 -left-1.5 size-3 rotate-45 bg-[#5B35F5]" />
+            <span className="absolute -top-0 -left-1.5 size-3 rotate-45 bg-primary" />
           </div>
         </div>
         {project.tracks.length === 0 || end === 0 ? (

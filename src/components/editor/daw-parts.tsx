@@ -75,7 +75,7 @@ export const ClipView = memo(function ClipView({
 
   return (
     <div
-      className={`absolute touch-none overflow-hidden rounded-xl border select-none ${selected ? "border-[#5B35F5] shadow-[0_0_0_1px_#5B35F5]" : "border-[#222325]/15"}`}
+      className={`absolute touch-none overflow-hidden rounded-xl border select-none ${selected ? "border-[#0D8BFF] shadow-[0_0_0_1px_#0D8BFF]" : "border-[#222325]/15"}`}
       style={{
         left: clip.offset * pps,
         top: CLIP_PAD,
@@ -185,7 +185,7 @@ export function TrackHeader({
           aria-pressed={track.solo}
           title={labels.solo}
           onClick={() => onChange({ solo: !track.solo })}
-          className={`grid size-8 place-items-center rounded-md text-xs font-bold ${track.solo ? "bg-[#5B35F5] text-white" : "bg-[#f5f5f5] text-muted-foreground hover:text-foreground"}`}
+          className={`grid size-8 place-items-center rounded-md text-xs font-bold ${track.solo ? "bg-primary text-white" : "bg-[#f5f5f5] text-muted-foreground hover:text-foreground"}`}
         >
           S
         </button>
