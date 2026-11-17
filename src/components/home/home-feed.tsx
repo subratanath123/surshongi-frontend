@@ -622,13 +622,13 @@ export function HomeFeed() {
       musicianId: authorId,
       category: postCategory,
       listing: postCategory === "gear" ? postListing : undefined,
-      imageUrl: postCategory === "gear" && postImage ? postImage : undefined,
+      imageUrl: postCategory === "gear" && postListing === "sell" && postImage ? postImage : undefined,
       title: postTitle.trim(),
       text: postText.trim(),
-      roleTag: postRole,
+      roleTag: postCategory === "gear" ? "" : postRole,
       priceBdt: Number.isFinite(priceNum) && priceNum > 0 ? priceNum : undefined,
       youtubeId: ytId || undefined,
-      audioSrc: postAudio.trim() || undefined,
+      audioSrc: postCategory === "gear" ? undefined : postAudio.trim() || undefined,
     });
     setPostTitle("");
     setPostText("");
@@ -988,7 +988,10 @@ export function HomeFeed() {
                                 key={choice}
                                 type="button"
                                 aria-pressed={postListing === choice}
-                                onClick={() => setPostListing(choice)}
+                                onClick={() => {
+                                  setPostListing(choice);
+                                  if (choice === "buy") setPostImage("");
+                                }}
                                 className={
                                   postListing === choice
                                     ? "rounded-full bg-[#0B184D] px-3 py-1 text-xs font-semibold text-white"
@@ -1000,6 +1003,7 @@ export function HomeFeed() {
                             ))}
                           </div>
                           <p className="mt-2 text-xs text-muted-foreground">{t("gearHint")}</p>
+                          {postListing === "sell" ? (
                           <div className="mt-3">
                             {postImage ? (
                               <div className="flex items-center gap-3">
@@ -1032,9 +1036,11 @@ export function HomeFeed() {
                               </label>
                             )}
                           </div>
+                          ) : null}
                         </div>
                       ) : null}
 
+                      {postCategory === "gear" ? null : (
                       <fieldset className="mt-4">
                         <legend className="text-xs font-semibold text-[#0B184D]">{t("fieldRole")}</legend>
                         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -1055,6 +1061,7 @@ export function HomeFeed() {
                           ))}
                         </div>
                       </fieldset>
+                      )}
 
                       <label className="mt-4 block">
                         <span className="text-xs font-semibold text-[#0B184D]">{t("fieldTitle")}</span>
@@ -1095,6 +1102,7 @@ export function HomeFeed() {
                         <label className="block">
                           <span className="text-xs font-semibold text-[#0B184D]">
                             {t("fieldYoutube")} <span className="font-normal text-muted-foreground">({t("optional")})</span>
+                            {postCategory === "gear" ? <span className="mt-0.5 block font-normal text-muted-foreground">{t("gearVideo")}</span> : null}
                           </span>
                           <input
                             value={postYoutube}
@@ -1105,6 +1113,7 @@ export function HomeFeed() {
                         </label>
                       </div>
 
+                      {postCategory === "gear" ? null : (
                       <div className="mt-3">
                         <p className="text-xs font-semibold text-[#0B184D]">
                           {t("fieldAudio")} <span className="font-normal text-muted-foreground">({t("optional")})</span>
@@ -1145,6 +1154,7 @@ export function HomeFeed() {
                           ) : null}
                         </div>
                       </div>
+                      )}
 
                       {!currentUser ? (
                         <p className="mt-3 text-xs text-muted-foreground">
@@ -1298,12 +1308,13 @@ function PostCard({
     post.youtubeId ? `https://www.youtube.com/watch?v=${post.youtubeId}` : "",
   );
   const [editAudio, setEditAudio] = useState(post.audioSrc ?? "");
+  const [editImage, setEditImage] = useState(post.imageUrl ?? "");
   const [uploadingEditAudio, setUploadingEditAudio] = useState(false);
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState("");
 
   const authorName = pick(locale, author.nameBn, author.name);
-  const roleLabel = t(`roles.${post.roleTag}`);
+  const roleLabel = post.category === "gear" || !post.roleTag ? "" : t(`roles.${post.roleTag}`);
   const fullText = pick(locale, post.textBn, post.text);
   const isLong = fullText.length > 260;
   const timeLabel = formatPostTime(post.createdAt, locale, hydrated);
@@ -1318,6 +1329,7 @@ function PostCard({
     setEditPrice(post.priceBdt ? String(post.priceBdt) : "");
     setEditYoutube(post.youtubeId ? `https://www.youtube.com/watch?v=${post.youtubeId}` : "");
     setEditAudio(post.audioSrc ?? "");
+    setEditImage(post.imageUrl ?? "");
     setEditError("");
     setEditing(true);
   }
@@ -1342,13 +1354,13 @@ function PostCard({
         postId: post.id,
         category: editCategory,
         listing: editCategory === "gear" ? editListing : undefined,
-        imageUrl: editCategory === "gear" ? post.imageUrl : undefined,
-        roleTag: editRole,
+        imageUrl: editCategory === "gear" && editListing === "sell" ? editImage || undefined : undefined,
+        roleTag: editCategory === "gear" ? "" : editRole,
         title: editTitle.trim(),
         text: editText.trim(),
         priceBdt: Number.isFinite(priceNum) && priceNum > 0 ? priceNum : undefined,
         youtubeId: ytId || undefined,
-        audioSrc: editAudio.trim() || undefined,
+        audioSrc: editCategory === "gear" ? undefined : editAudio.trim() || undefined,
       });
       if (res.error) {
         setEditError(res.error);
@@ -1475,6 +1487,8 @@ function PostCard({
                 {t(`categories.${cat}`)}
               </button>
             ))}
+            {editCategory === "gear" ? null : (
+            <>
             <span className="mx-1 self-center text-xs text-muted-foreground">·</span>
             {roles.map((r) => (
               <button
@@ -1490,14 +1504,20 @@ function PostCard({
                 {t(`roles.${r}`)}
               </button>
             ))}
+            </>
+            )}
           </div>
           {editCategory === "gear" ? (
+            <>
             <div className="flex flex-wrap gap-1.5">
               {(["sell", "buy"] as const).map((choice) => (
                 <button
                   key={choice}
                   type="button"
-                  onClick={() => setEditListing(choice)}
+                  onClick={() => {
+                    setEditListing(choice);
+                    if (choice === "buy") setEditImage("");
+                  }}
                   className={
                     editListing === choice
                       ? "rounded-full bg-[#0B184D] px-3 py-1 text-xs font-semibold text-white"
@@ -1508,6 +1528,41 @@ function PostCard({
                 </button>
               ))}
             </div>
+            {editListing === "sell" ? (
+              <div>
+                {editImage ? (
+                  <div className="flex items-center gap-3">
+                    <img src={editImage} alt="" className="h-14 w-14 rounded-lg object-cover" />
+                    <button type="button" onClick={() => setEditImage("")} className="text-xs font-semibold text-muted-foreground">
+                      {t("removeAudio")}
+                    </button>
+                  </div>
+                ) : (
+                  <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-xs font-medium">
+                    <Upload className="size-3.5 text-primary" />
+                    {t("gearPhoto")}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = "";
+                        if (!file) return;
+                        setUploadingEditAudio(true);
+                        try {
+                          const res = await uploadAudioFile(file);
+                          if (res.kind === "image" || file.type.startsWith("image/")) setEditImage(res.url);
+                        } finally {
+                          setUploadingEditAudio(false);
+                        }
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+            ) : null}
+            </>
           ) : null}
 
           <div className="grid gap-2.5 sm:grid-cols-[1fr_150px]">
@@ -1533,13 +1588,14 @@ function PostCard({
             placeholder={t("postBodyPlaceholder")}
           />
 
-          <div className="grid gap-2.5 sm:grid-cols-2">
+          <div className={`grid gap-2.5 ${editCategory === "gear" ? "" : "sm:grid-cols-2"}`}>
             <input
               value={editYoutube}
               onChange={(e) => setEditYoutube(e.target.value)}
               placeholder={t("postYoutubePlaceholder")}
               className="h-9 rounded-xl border border-border bg-card px-3 text-xs"
             />
+            {editCategory === "gear" ? null : (
             <div className="flex items-center gap-2">
               <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-xs font-medium hover:border-primary">
                 <Upload className="size-3.5 text-primary" />
@@ -1568,6 +1624,7 @@ function PostCard({
                 className="h-9 min-w-0 flex-1 rounded-xl border border-border bg-card px-2.5 text-xs"
               />
             </div>
+            )}
           </div>
 
           {editError ? <p className="text-xs text-destructive">{editError}</p> : null}

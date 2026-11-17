@@ -60,29 +60,21 @@ export function SiteHeader() {
 
         <nav className="ml-auto flex shrink-0 items-center gap-1 sm:order-3 sm:ml-0" aria-label={t("brand")}>
           <MessageAlerts />
-          <button
-            type="button"
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#e4e6eb] text-[#0B184D]"
-            aria-expanded={menuOpen}
-            aria-label={menuOpen ? t("closeMenu") : t("menu")}
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            <LayoutGrid className="size-5" aria-hidden />
-          </button>
-        </nav>
-      </div>
-      {menuOpen ? (
-        <>
-          <button
-            type="button"
-            className="fixed inset-0 z-30 cursor-default"
-            aria-label={t("closeMenu")}
-            onClick={closeMenu}
-          />
-          <nav
-            aria-label={t("menu")}
-            className="absolute top-full right-3 z-50 mt-2 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-border bg-white shadow-[0_12px_28px_rgba(0,0,0,0.12),0_2px_4px_rgba(0,0,0,0.08)]"
-          >
+          <div className="relative z-50">
+            <button
+              type="button"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#e4e6eb] text-[#0B184D]"
+              aria-expanded={menuOpen}
+              aria-label={menuOpen ? t("closeMenu") : t("menu")}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <LayoutGrid className="size-5" aria-hidden />
+            </button>
+            {menuOpen ? (
+              <nav
+                aria-label={t("menu")}
+                className="absolute top-full right-0 z-50 mt-2 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-border bg-white shadow-[0_12px_28px_rgba(0,0,0,0.12),0_2px_4px_rgba(0,0,0,0.08)]"
+              >
             <div className="flex items-center justify-between px-4 pt-4 pb-1">
               <p className="text-2xl font-bold text-[#0B184D]">{t("menu")}</p>
               <button
@@ -192,7 +184,17 @@ export function SiteHeader() {
               </div>
             </div>
           </nav>
-        </>
+            ) : null}
+          </div>
+        </nav>
+      </div>
+      {menuOpen ? (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 cursor-default"
+          aria-label={t("closeMenu")}
+          onClick={closeMenu}
+        />
       ) : null}
     </header>
   );
