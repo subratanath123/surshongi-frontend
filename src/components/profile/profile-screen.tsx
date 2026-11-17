@@ -113,6 +113,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [postActionError, setPostActionError] = useState("");
   const [editPostCategory, setEditPostCategory] = useState<PostCategory>("offering");
+  const [editPostListing, setEditPostListing] = useState<"sell" | "buy">("sell");
   const [editPostTitle, setEditPostTitle] = useState("");
   const [editPostText, setEditPostText] = useState("");
   const [editPostPrice, setEditPostPrice] = useState("");
@@ -842,7 +843,11 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                     className="rounded-xl border border-border bg-card p-5"
                   >
                     <div className="flex items-center justify-between gap-2 text-xs text-primary">
-                      <span>{home(`categories.${post.category}`)}</span>
+                      <span>
+                        {post.category === "gear"
+                          ? `${home("categories.gear")} · ${home(post.listing === "buy" ? "listingBuy" : "listingSell")}`
+                          : home(`categories.${post.category}`)}
+                      </span>
                       <div className="flex items-center gap-2">
                         {post.priceBdt ? <span>৳{formatNumber(post.priceBdt, locale)}</span> : null}
                         {isOwner ? (
@@ -853,6 +858,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                                 setEditingPostId(null);
                               } else {
                                 setEditPostCategory(post.category);
+                                setEditPostListing(post.listing === "buy" ? "buy" : "sell");
                                 setEditPostTitle(post.title);
                                 setEditPostText(post.text);
                                 setEditPostPrice(post.priceBdt ? String(post.priceBdt) : "");
@@ -880,6 +886,8 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                               action: "updatePost",
                               postId: post.id,
                               category: editPostCategory,
+                              listing: editPostCategory === "gear" ? editPostListing : undefined,
+                              imageUrl: editPostCategory === "gear" ? post.imageUrl : undefined,
                               roleTag: post.roleTag,
                               title: editPostTitle.trim(),
                               text: editPostText.trim(),
@@ -895,7 +903,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                         className="mt-3 space-y-2.5 rounded-lg border border-primary/40 bg-secondary p-3.5"
                       >
                         <div className="flex flex-wrap gap-1.5">
-                          {(accountKindOf(profile) === "member" ? (["collab"] as PostCategory[]) : (["offering", "collab", "work"] as PostCategory[])).map((cat) => (
+                          {(accountKindOf(profile) === "member" ? (["collab", "gear"] as PostCategory[]) : (["offering", "collab", "work", "gear"] as PostCategory[])).map((cat) => (
                             <button
                               key={cat}
                               type="button"
@@ -910,6 +918,24 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                             </button>
                           ))}
                         </div>
+                        {editPostCategory === "gear" ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {(["sell", "buy"] as const).map((choice) => (
+                              <button
+                                key={choice}
+                                type="button"
+                                onClick={() => setEditPostListing(choice)}
+                                className={
+                                  editPostListing === choice
+                                    ? "rounded-full bg-[#0B184D] px-3 py-1 text-xs font-semibold text-white"
+                                    : "rounded-full bg-card px-3 py-1 text-xs text-muted-foreground"
+                                }
+                              >
+                                {home(choice === "sell" ? "listingSell" : "listingBuy")}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
                         <div className="grid gap-2 sm:grid-cols-[1fr_140px]">
                           <input
                             required
@@ -990,6 +1016,9 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                       </form>
                     ) : (
                       <>
+                        {post.imageUrl ? (
+                          <img src={post.imageUrl} alt="" className="mt-3 max-h-72 w-full rounded-lg object-cover" />
+                        ) : null}
                         <h3 className="mt-1 font-semibold">
                           {pick(locale, post.titleBn, post.title)}
                         </h3>

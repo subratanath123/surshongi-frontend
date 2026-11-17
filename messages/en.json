@@ -33,7 +33,14 @@
     "bangla": "বাংলা",
     "english": "English",
     "menu": "Menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "signInHint": "Sign in with Google to post and chat.",
+    "howHint": "How hiring, posts, and chat work on SurShongi.",
+    "editorHint": "Trim a recording down to the part you need.",
+    "ordersHint": "Orders you placed or received.",
+    "editHint": "Update your name, photos, and skills.",
+    "activityHint": "Pages opened on this account.",
+    "logoutHint": "Leave this account on this phone."
   },
   "Cover": {
     "pick": "Pick a template",
@@ -287,6 +294,10 @@
     "richLink": "Link",
     "richSample": "text",
     "fieldPrice": "Rate",
+    "listingSell": "Selling",
+    "listingBuy": "Looking to buy",
+    "gearHint": "Chat to agree the price, then pay the other person directly. SurShongi does not take the money.",
+    "gearPhoto": "Photo of the instrument",
     "fieldYoutube": "YouTube",
     "fieldAudio": "Audio",
     "fieldRole": "Part",
@@ -307,7 +318,8 @@
     "categories": {
       "offering": "Offering",
       "collab": "Looking for something",
-      "work": "Recent Work"
+      "work": "Recent Work",
+      "gear": "Buy or sell an instrument"
     },
     "yours": "Your profile",
     "sample": "Sample profile",

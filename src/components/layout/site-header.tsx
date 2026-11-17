@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { CircleHelp, ClipboardList, LayoutGrid, LogOut, Scissors, UserRound, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { HeaderSearch } from "@/components/layout/header-search";
 import { LanguageToggle } from "@/components/layout/language-toggle";
@@ -22,6 +22,15 @@ export function SiteHeader() {
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   function closeMenu() {
     setMenuOpen(false);
@@ -53,80 +62,137 @@ export function SiteHeader() {
           <MessageAlerts />
           <button
             type="button"
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-white text-[#0B184D]"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#e4e6eb] text-[#0B184D]"
             aria-expanded={menuOpen}
             aria-label={menuOpen ? t("closeMenu") : t("menu")}
             onClick={() => setMenuOpen((open) => !open)}
           >
-            {menuOpen ? <X className="size-5" aria-hidden /> : <Menu className="size-5" aria-hidden />}
+            <LayoutGrid className="size-5" aria-hidden />
           </button>
         </nav>
       </div>
       {menuOpen ? (
-        <nav className="border-t border-border px-3 py-2" aria-label={t("menu")}>
-          <div className="mx-auto flex max-w-6xl flex-col">
-            {user ? (
-              <Link
-                href={`/u/${user.id}`}
-                onClick={closeMenu}
-                className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-[#0B184D] hover:bg-secondary"
-              >
-                <span className="grid size-7 place-items-center rounded-full bg-[#0B184D] text-[11px] font-bold text-white">
-                  {name.slice(0, 1)}
-                </span>
-                <span className="truncate">{name}</span>
-              </Link>
-            ) : (
-              <Link
-                href="/register"
-                onClick={closeMenu}
-                className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-[#0D8BFF] hover:bg-secondary"
-              >
-                {t("register")}
-              </Link>
-            )}
-            <Link href="/how" onClick={closeMenu} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-[#0B184D] hover:bg-secondary">
-              {t("how")}
-            </Link>
-            <Link href="/editor" onClick={closeMenu} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-[#0B184D] hover:bg-secondary">
-              {t("editor")}
-            </Link>
-            {user ? (
-              <>
-                <Link href="/orders" onClick={closeMenu} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-[#0B184D] hover:bg-secondary">
-                  {t("orders")}
-                </Link>
-                <Link href="/register" onClick={closeMenu} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-[#0B184D] hover:bg-secondary">
-                  {t("editProfile")}
-                </Link>
-                {admin ? (
-                  <Link href="/activity" onClick={closeMenu} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-[#0B184D] hover:bg-secondary">
-                    {t("activity")}
-                  </Link>
-                ) : null}
-              </>
-            ) : null}
-            <div className="px-3 py-2">
-              <LanguageToggle />
-            </div>
-            {user ? (
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-30 cursor-default"
+            aria-label={t("closeMenu")}
+            onClick={closeMenu}
+          />
+          <nav
+            aria-label={t("menu")}
+            className="absolute top-full right-3 z-50 mt-2 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-border bg-white shadow-[0_12px_28px_rgba(0,0,0,0.12),0_2px_4px_rgba(0,0,0,0.08)]"
+          >
+            <div className="flex items-center justify-between px-4 pt-4 pb-1">
+              <p className="text-2xl font-bold text-[#0B184D]">{t("menu")}</p>
               <button
                 type="button"
-                disabled={leaving}
-                onClick={() => {
-                  setLeaving(true);
-                  void setSessionUser(null).finally(() => {
-                    setLeaving(false);
-                    closeMenu();
-                  });
-                }}
-                className="flex min-h-11 items-center rounded-lg px-3 text-left text-sm font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-60"
+                className="grid size-9 place-items-center rounded-full bg-[#e4e6eb] text-[#0B184D]"
+                aria-label={t("closeMenu")}
+                onClick={closeMenu}
               >
-                {leaving ? "…" : t("logout")}
+                <X className="size-5" aria-hidden />
               </button>
-            ) : null}
-          </div>
-        </nav>
+            </div>
+            <div className="max-h-[min(32rem,70vh)] overflow-y-auto px-2 pb-2">
+              {user ? (
+                <Link href={`/u/${user.id}`} onClick={closeMenu} className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-[#f0f2f5]">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#0B184D] text-sm font-bold text-white">
+                    {name.slice(0, 1)}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[15px] font-semibold text-[#0B184D]">{name}</span>
+                  </span>
+                </Link>
+              ) : (
+                <Link href="/register" onClick={closeMenu} className="flex items-start gap-3 rounded-xl px-2 py-2.5 hover:bg-[#f0f2f5]">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#E7F3FF] text-[#0D8BFF]">
+                    <UserRound className="size-5" aria-hidden />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[15px] font-semibold text-[#0B184D]">{t("register")}</span>
+                    <span className="block text-[13px] leading-snug text-muted-foreground">{t("signInHint")}</span>
+                  </span>
+                </Link>
+              )}
+              <Link href="/how" onClick={closeMenu} className="flex items-start gap-3 rounded-xl px-2 py-2.5 hover:bg-[#f0f2f5]">
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#E7F3FF] text-[#0D8BFF]">
+                  <CircleHelp className="size-5" aria-hidden />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[15px] font-semibold text-[#0B184D]">{t("how")}</span>
+                  <span className="block text-[13px] leading-snug text-muted-foreground">{t("howHint")}</span>
+                </span>
+              </Link>
+              <Link href="/editor" onClick={closeMenu} className="flex items-start gap-3 rounded-xl px-2 py-2.5 hover:bg-[#f0f2f5]">
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#E7F3FF] text-[#0D8BFF]">
+                  <Scissors className="size-5" aria-hidden />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[15px] font-semibold text-[#0B184D]">{t("editor")}</span>
+                  <span className="block text-[13px] leading-snug text-muted-foreground">{t("editorHint")}</span>
+                </span>
+              </Link>
+              {user ? (
+                <>
+                  <Link href="/orders" onClick={closeMenu} className="flex items-start gap-3 rounded-xl px-2 py-2.5 hover:bg-[#f0f2f5]">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#E7F3FF] text-[#0D8BFF]">
+                      <ClipboardList className="size-5" aria-hidden />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[15px] font-semibold text-[#0B184D]">{t("orders")}</span>
+                      <span className="block text-[13px] leading-snug text-muted-foreground">{t("ordersHint")}</span>
+                    </span>
+                  </Link>
+                  <Link href="/register" onClick={closeMenu} className="flex items-start gap-3 rounded-xl px-2 py-2.5 hover:bg-[#f0f2f5]">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#E7F3FF] text-[#0D8BFF]">
+                      <UserRound className="size-5" aria-hidden />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[15px] font-semibold text-[#0B184D]">{t("editProfile")}</span>
+                      <span className="block text-[13px] leading-snug text-muted-foreground">{t("editHint")}</span>
+                    </span>
+                  </Link>
+                  {admin ? (
+                    <Link href="/activity" onClick={closeMenu} className="flex items-start gap-3 rounded-xl px-2 py-2.5 hover:bg-[#f0f2f5]">
+                      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#E7F3FF] text-[#0D8BFF]">
+                        <ClipboardList className="size-5" aria-hidden />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-[15px] font-semibold text-[#0B184D]">{t("activity")}</span>
+                        <span className="block text-[13px] leading-snug text-muted-foreground">{t("activityHint")}</span>
+                      </span>
+                    </Link>
+                  ) : null}
+                  <button
+                    type="button"
+                    disabled={leaving}
+                    onClick={() => {
+                      setLeaving(true);
+                      void setSessionUser(null).finally(() => {
+                        setLeaving(false);
+                        closeMenu();
+                      });
+                    }}
+                    className="flex w-full items-start gap-3 rounded-xl px-2 py-2.5 text-left hover:bg-[#f0f2f5] disabled:opacity-60"
+                  >
+                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#f0f2f5] text-[#0B184D]">
+                      <LogOut className="size-5" aria-hidden />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[15px] font-semibold text-[#0B184D]">{leaving ? "…" : t("logout")}</span>
+                      <span className="block text-[13px] leading-snug text-muted-foreground">{t("logoutHint")}</span>
+                    </span>
+                  </button>
+                </>
+              ) : null}
+              <div className="mx-2 mt-1 flex items-center justify-between border-t border-border py-3">
+                <span className="text-sm font-semibold text-[#0B184D]">{t("language")}</span>
+                <LanguageToggle />
+              </div>
+            </div>
+          </nav>
+        </>
       ) : null}
     </header>
   );

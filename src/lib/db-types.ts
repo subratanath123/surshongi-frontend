@@ -12,7 +12,8 @@ export type ShowcaseItem = {
   createdAt: string;
 };
 
-export type PostCategory = "work" | "offering" | "collab";
+export type PostCategory = "work" | "offering" | "collab" | "gear";
+export type GearListing = "sell" | "buy";
 
 export type CommunityPost = {
   id: string;
@@ -23,6 +24,9 @@ export type CommunityPost = {
   text: string;
   textBn: string;
   roleTag: Role;
+  /** Set when category is gear: the author is selling or looking to buy an instrument. */
+  listing?: GearListing;
+  imageUrl?: string;
   priceBdt?: number;
   youtubeId?: string;
   audioSrc?: string;

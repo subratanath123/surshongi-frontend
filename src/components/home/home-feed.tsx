@@ -288,7 +288,8 @@ type FeedCard = {
   author: DbUser;
   preferred: boolean;
 };
-const categories: PostCategory[] = ["offering", "collab", "work"];
+const categories: PostCategory[] = ["offering", "collab", "work", "gear"];
+const memberCategories: PostCategory[] = ["collab", "gear"];
 
 function formatPostTime(iso: string, locale: string, hydrated: boolean) {
   const date = new Date(iso);
@@ -329,6 +330,8 @@ export function HomeFeed() {
   const searchSeq = useRef(0);
   const [composerOpen, setComposerOpen] = useState(false);
   const [postCategory, setPostCategory] = useState<PostCategory>("offering");
+  const [postListing, setPostListing] = useState<"sell" | "buy">("sell");
+  const [postImage, setPostImage] = useState("");
   const [postRole, setPostRole] = useState<Role>(currentUser?.roles[0] ?? "guitarist");
   const [postTitle, setPostTitle] = useState("");
   const [postText, setPostText] = useState("");
@@ -617,7 +620,9 @@ export function HomeFeed() {
     await mutateCommunity({
       action: "createPost",
       musicianId: authorId,
-      category: lookingOnly ? "collab" : postCategory,
+      category: postCategory,
+      listing: postCategory === "gear" ? postListing : undefined,
+      imageUrl: postCategory === "gear" && postImage ? postImage : undefined,
       title: postTitle.trim(),
       text: postText.trim(),
       roleTag: postRole,
@@ -630,6 +635,8 @@ export function HomeFeed() {
     setPostPrice("");
     setPostYoutube("");
     setPostAudio("");
+    setPostImage("");
+    setPostListing("sell");
     setComposerOpen(false);
     setFeedReload((value) => value + 1);
   }
@@ -637,20 +644,39 @@ export function HomeFeed() {
   return (
     <div className="mx-auto min-w-0 max-w-6xl px-4 py-6 sm:px-5">
       {service ? null : (
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            variant="secondary"
-            className="rounded-full"
-            onClick={() =>
-              composerOpen
-                ? setComposerOpen(false)
-                : focusComposer(lookingOnly ? "collab" : undefined)
-            }
-          >
-            <Plus className="size-4" />
-            {lookingOnly ? t("categories.collab") : t("createPostBtn")}
-          </Button>
+        <div className="flex flex-wrap justify-end gap-2">
+          {lookingOnly ? (
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                className="rounded-full"
+                onClick={() => (composerOpen && postCategory === "collab" ? setComposerOpen(false) : focusComposer("collab"))}
+              >
+                <Plus className="size-4" />
+                {t("categories.collab")}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                className="rounded-full"
+                onClick={() => (composerOpen && postCategory === "gear" ? setComposerOpen(false) : focusComposer("gear"))}
+              >
+                <Plus className="size-4" />
+                {t("categories.gear")}
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="button"
+              variant="secondary"
+              className="rounded-full"
+              onClick={() => (composerOpen ? setComposerOpen(false) : focusComposer())}
+            >
+              <Plus className="size-4" />
+              {t("createPostBtn")}
+            </Button>
+          )}
         </div>
       )}
 
@@ -937,8 +963,8 @@ export function HomeFeed() {
                         </button>
                       </div>
 
-                      {lookingOnly ? null : <div className="mt-4 grid grid-cols-3 gap-2" role="group" aria-label={t("composerTitle")}>
-                        {categories.map((cat) => (
+                      <div className={`mt-4 grid gap-2 ${lookingOnly ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`} role="group" aria-label={t("composerTitle")}>
+                        {(lookingOnly ? memberCategories : categories).map((cat) => (
                           <button
                             key={cat}
                             type="button"
@@ -953,7 +979,61 @@ export function HomeFeed() {
                             {t(`categories.${cat}`)}
                           </button>
                         ))}
-                      </div>}
+                      </div>
+                      {postCategory === "gear" ? (
+                        <div className="mt-3">
+                          <div className="flex flex-wrap gap-2">
+                            {(["sell", "buy"] as const).map((choice) => (
+                              <button
+                                key={choice}
+                                type="button"
+                                aria-pressed={postListing === choice}
+                                onClick={() => setPostListing(choice)}
+                                className={
+                                  postListing === choice
+                                    ? "rounded-full bg-[#0B184D] px-3 py-1 text-xs font-semibold text-white"
+                                    : "rounded-full border border-border bg-white px-3 py-1 text-xs text-[#0B184D]"
+                                }
+                              >
+                                {t(choice === "sell" ? "listingSell" : "listingBuy")}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="mt-2 text-xs text-muted-foreground">{t("gearHint")}</p>
+                          <div className="mt-3">
+                            {postImage ? (
+                              <div className="flex items-center gap-3">
+                                <img src={postImage} alt="" className="h-16 w-16 rounded-lg object-cover" />
+                                <button type="button" onClick={() => setPostImage("")} className="text-xs font-semibold text-muted-foreground hover:text-foreground">
+                                  {t("removeAudio")}
+                                </button>
+                              </div>
+                            ) : (
+                              <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-border bg-white px-3 text-sm font-medium text-[#0B184D] hover:border-[#0D8BFF]">
+                                <Upload className="size-4 text-primary" />
+                                {t("gearPhoto")}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="sr-only"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    e.target.value = "";
+                                    if (!file) return;
+                                    setUploading(true);
+                                    try {
+                                      const res = await uploadAudioFile(file);
+                                      if (res.kind === "image" || file.type.startsWith("image/")) setPostImage(res.url);
+                                    } finally {
+                                      setUploading(false);
+                                    }
+                                  }}
+                                />
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                      ) : null}
 
                       <fieldset className="mt-4">
                         <legend className="text-xs font-semibold text-[#0B184D]">{t("fieldRole")}</legend>
@@ -999,7 +1079,7 @@ export function HomeFeed() {
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         <label className="block">
                           <span className="text-xs font-semibold text-[#0B184D]">
-                            {t("fieldPrice")} <span className="font-normal text-muted-foreground">({t("optional")})</span>
+                            {postCategory === "gear" && postListing === "buy" ? t("listingBuy") : t("fieldPrice")} <span className="font-normal text-muted-foreground">({t("optional")})</span>
                           </span>
                           <span className="mt-1.5 flex h-11 items-center rounded-lg border border-border bg-white focus-within:border-[#0D8BFF] focus-within:ring-2 focus-within:ring-[#0D8BFF]/30">
                             <span className="pl-3 text-sm text-muted-foreground">৳</span>
@@ -1209,6 +1289,7 @@ function PostCard({
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editCategory, setEditCategory] = useState<PostCategory>(post.category);
+  const [editListing, setEditListing] = useState<"sell" | "buy">(post.listing === "buy" ? "buy" : "sell");
   const [editRole, setEditRole] = useState<Role>(post.roleTag);
   const [editTitle, setEditTitle] = useState(post.title);
   const [editText, setEditText] = useState(post.text);
@@ -1230,6 +1311,7 @@ function PostCard({
 
   function openEditor() {
     setEditCategory(post.category);
+    setEditListing(post.listing === "buy" ? "buy" : "sell");
     setEditRole(post.roleTag);
     setEditTitle(post.title);
     setEditText(post.text);
@@ -1259,6 +1341,8 @@ function PostCard({
         action: "updatePost",
         postId: post.id,
         category: editCategory,
+        listing: editCategory === "gear" ? editListing : undefined,
+        imageUrl: editCategory === "gear" ? post.imageUrl : undefined,
         roleTag: editRole,
         title: editTitle.trim(),
         text: editText.trim(),
@@ -1352,7 +1436,9 @@ function PostCard({
             </span>
           ) : null}
           <span className="rounded-lg border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-foreground">
-            {t(`categories.${post.category}`)} · {roleLabel}
+            {post.category === "gear"
+              ? `${t("categories.gear")} · ${t(post.listing === "buy" ? "listingBuy" : "listingSell")}`
+              : `${t(`categories.${post.category}`)} · ${roleLabel}`}
           </span>
           {isOwnPost ? (
             <button
@@ -1375,7 +1461,7 @@ function PostCard({
           className="mx-4 mt-3 mb-3 space-y-2.5 rounded-lg border border-primary/40 bg-secondary p-4"
         >
           <div className="flex flex-wrap gap-1.5">
-            {categories.map((cat) => (
+            {(accountKindOf(author) === "member" ? memberCategories : categories).map((cat) => (
               <button
                 key={cat}
                 type="button"
@@ -1405,6 +1491,24 @@ function PostCard({
               </button>
             ))}
           </div>
+          {editCategory === "gear" ? (
+            <div className="flex flex-wrap gap-1.5">
+              {(["sell", "buy"] as const).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  onClick={() => setEditListing(choice)}
+                  className={
+                    editListing === choice
+                      ? "rounded-full bg-[#0B184D] px-3 py-1 text-xs font-semibold text-white"
+                      : "rounded-full bg-card px-3 py-1 text-xs text-muted-foreground"
+                  }
+                >
+                  {t(choice === "sell" ? "listingSell" : "listingBuy")}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <div className="grid gap-2.5 sm:grid-cols-[1fr_150px]">
             <input
@@ -1547,6 +1651,10 @@ function PostCard({
         </div>
       )}
 
+      {post.imageUrl ? (
+        <img src={post.imageUrl} alt="" className="mt-3 max-h-80 w-full border-t border-border object-cover" />
+      ) : null}
+
       {/* Media Attachment */}
       {post.youtubeId ? (
         <div className="border-t border-border bg-white">
@@ -1577,7 +1685,9 @@ function PostCard({
           </span>
         </div>
         <span>
-          {t(`categories.${post.category}`)} · {roleLabel}
+          {post.category === "gear"
+            ? `${t("categories.gear")} · ${t(post.listing === "buy" ? "listingBuy" : "listingSell")}`
+            : `${t(`categories.${post.category}`)} · ${roleLabel}`}
         </span>
       </div>
 
