@@ -291,8 +291,9 @@ function ProfileWizard({
         setAudioUrl(up.url);
         if (!audioTitle.trim()) setAudioTitle(up.name.replace(/\.[^.]+$/, ""));
       }
-    } catch {
-      setSubmitError(t("uploadFailed"));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      setSubmitError(message && message !== "Upload failed" ? message : t("uploadFailed"));
     } finally {
       setUploadingField(null);
     }
@@ -950,9 +951,14 @@ function ProfileWizard({
                       <span className="text-xs">{t("audioFormats")}</span>
                       <input
                         type="file"
-                        accept="audio/*"
+                        accept="audio/*,.mp3,.m4a,.wav,.ogg,.opus,.aac"
                         className="sr-only"
-                        onChange={(e) => void upload(e.target.files?.[0], "audio")}
+                        onChange={(e) => {
+                          const input = e.currentTarget;
+                          const file = input.files?.[0];
+                          input.value = "";
+                          void upload(file, "audio");
+                        }}
                       />
                     </label>
                   )}

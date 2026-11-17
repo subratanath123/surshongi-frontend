@@ -11,7 +11,8 @@
     "notify": "Ping this phone when a new message arrives",
     "notifyOn": "Turn on",
     "notifyFailed": "Alerts could not be saved. Try again in a moment.",
-    "notifyBlocked": "Message alerts are blocked. Allow notifications for SurShongi in the phone settings."
+    "notifyBlocked": "Message alerts are blocked. Allow notifications for SurShongi in the phone settings.",
+    "notifyReady": "Message alerts are on for this phone."
   },
   "Nav": {
     "brand": "SurShongi",
@@ -30,7 +31,9 @@
     "skip": "Skip to content",
     "language": "Language",
     "bangla": "বাংলা",
-    "english": "English"
+    "english": "English",
+    "menu": "Menu",
+    "closeMenu": "Close menu"
   },
   "Cover": {
     "pick": "Pick a template",
@@ -303,7 +306,7 @@
     "badYoutube": "Please enter a valid YouTube link.",
     "categories": {
       "offering": "Offering",
-      "collab": "Looking for Part",
+      "collab": "Looking for something",
       "work": "Recent Work"
     },
     "yours": "Your profile",
@@ -603,7 +606,7 @@
     "audioUploadLabel": "Upload Audio File or URL",
     "chooseAudio": "Upload Audio",
     "uploading": "Uploading…",
-    "uploadFailed": "Audio upload failed. Try a WAV or MP3 file.",
+    "uploadFailed": "The audio file did not upload. Try again.",
     "more": "Instruments, genres & starting rate",
     "instruments": "Instruments & skills",
     "hireSkills": "What people can hire you for",
@@ -660,7 +663,7 @@
     "previewHere": "Video preview appears here",
     "andOr": "and / or",
     "audioCardTitle": "Audio recording",
-    "audioFormats": "MP3, WAV, M4A or OGG",
+    "audioFormats": "MP3, M4A, OGG or WAV, up to 60 MB",
     "audioTitlePlaceholder": "e.g. Chorus stem / Solo take",
     "removeAudio": "Remove audio",
     "existingShowcase": "You already have {count} showcase item(s) on your profile.",

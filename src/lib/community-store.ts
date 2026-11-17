@@ -421,17 +421,54 @@ export async function mutateCommunity<T = { db: CommunityDatabase; user?: DbUser
   }
 }
 
-export async function uploadAudioFile(
-  file: File,
-): Promise<{ url: string; name: string; kind?: "image" | "audio" | "video" }> {
-  const formData = new FormData();
-  formData.append("file", file);
+const UPLOAD_CHUNK_BYTES = 3 * 1024 * 1024;
+
+async function postUpload(formData: FormData) {
   const res = await fetch(apiUrl("/community-upload"), {
     method: "POST",
     body: formData,
   });
-  if (!res.ok) {
-    throw new Error("Upload failed");
+  const data = (await res.json().catch(() => ({}))) as {
+    url?: string;
+    name?: string;
+    kind?: "image" | "audio" | "video";
+    error?: string;
+    received?: number;
+  };
+  if (!res.ok) throw new Error(data.error || "Upload failed");
+  return data;
+}
+
+export async function uploadAudioFile(
+  file: File,
+): Promise<{ url: string; name: string; kind?: "image" | "audio" | "video" }> {
+  if (file.size <= UPLOAD_CHUNK_BYTES) {
+    const formData = new FormData();
+    formData.append("file", file);
+    const data = await postUpload(formData);
+    if (!data.url) throw new Error(data.error || "Upload failed");
+    return { url: data.url, name: data.name || file.name, kind: data.kind };
   }
-  return (await res.json()) as { url: string; name: string; kind?: "image" | "audio" | "video" };
+
+  const uploadId = crypto.randomUUID().replace(/-/g, "").slice(0, 24);
+  const chunkCount = Math.ceil(file.size / UPLOAD_CHUNK_BYTES);
+  let saved: { url?: string; name?: string; kind?: "image" | "audio" | "video" } = {};
+  for (let chunkIndex = 0; chunkIndex < chunkCount; chunkIndex += 1) {
+    const start = chunkIndex * UPLOAD_CHUNK_BYTES;
+    const piece = file.slice(start, Math.min(file.size, start + UPLOAD_CHUNK_BYTES), file.type);
+    const formData = new FormData();
+    formData.append("file", piece, file.name);
+    formData.append("uploadId", uploadId);
+    formData.append("chunkIndex", String(chunkIndex));
+    formData.append("chunkCount", String(chunkCount));
+    formData.append("filename", file.name);
+    if (file.type) formData.append("contentType", file.type);
+    const data = await postUpload(formData);
+    if (chunkIndex < chunkCount - 1 && typeof data.received !== "number") {
+      throw new Error("Upload failed");
+    }
+    saved = data;
+  }
+  if (!saved.url) throw new Error("Upload failed");
+  return { url: saved.url, name: saved.name || file.name, kind: saved.kind };
 }

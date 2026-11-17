@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Bell } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { mutateCommunity, useCurrentUser } from "@/lib/community-store";
 import { firebaseConfig, firebaseVapidKey } from "@/lib/firebase-public";
 
@@ -34,12 +36,15 @@ async function savePushToken() {
   localStorage.setItem("sur-push-token", token);
 }
 
-export function MessageAlerts({ className = "" }: { className?: string }) {
+export function MessageAlerts() {
   const t = useTranslations("Pwa");
+  const router = useRouter();
   const user = useCurrentUser();
   const [permission, setPermission] = useState<NotificationPermission | "unknown">("unknown");
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [open, setOpen] = useState(false);
+  const on = permission === "granted" && !failed;
 
   useEffect(() => {
     if ("Notification" in window) setPermission(Notification.permission);
@@ -51,34 +56,59 @@ export function MessageAlerts({ className = "" }: { className?: string }) {
     void savePushToken().then(() => setFailed(false)).catch(() => setFailed(true));
   }, [user?.id, permission]);
 
-  if (!user || (permission !== "default" && permission !== "denied" && !failed)) return null;
+  function enable() {
+    if (!("Notification" in window)) return;
+    setBusy(true);
+    void Notification.requestPermission()
+      .then((result) => {
+        setPermission(result);
+        if (result === "granted") return savePushToken().then(() => setFailed(false));
+      })
+      .catch(() => setFailed(true))
+      .finally(() => setBusy(false));
+  }
 
   return (
-    <div className={`border-b border-[#D6EBFF] bg-[#E7F3FF] px-4 py-2.5 ${className}`}>
-      <div className="mx-auto flex max-w-6xl items-center gap-3">
-      <p className="min-w-0 flex-1 text-sm text-[#222325]">
-        {permission === "denied" ? t("notifyBlocked") : failed ? t("notifyFailed") : t("notify")}
-      </p>
-      {permission === "denied" ? null : (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => {
-            if (!("Notification" in window)) return;
-            setBusy(true);
-            void Notification.requestPermission()
-              .then((result) => {
-                setPermission(result);
-                if (result === "granted") return savePushToken();
-              })
-              .finally(() => setBusy(false));
-          }}
-          className="h-9 shrink-0 rounded-full bg-primary px-3 text-xs font-semibold text-white disabled:opacity-60"
-        >
-          {t("notifyOn")}
-        </button>
-      )}
-      </div>
+    <div className="relative">
+      <button
+        type="button"
+        aria-label={t("notify")}
+        aria-expanded={open}
+        disabled={busy}
+        onClick={() => {
+          if (!user) {
+            router.push("/register");
+            return;
+          }
+          if (permission === "default") {
+            setOpen(true);
+            enable();
+            return;
+          }
+          setOpen((value) => !value);
+        }}
+        className="relative inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-white text-[#0B184D] hover:border-[#0D8BFF] disabled:opacity-60"
+      >
+        <Bell className={`size-5 ${on ? "fill-[#0D8BFF] text-[#0D8BFF]" : ""}`} aria-hidden />
+        {on ? null : <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-[#FF2D7A]" aria-hidden />}
+      </button>
+      {open && user ? (
+        <div className="absolute right-0 top-12 z-50 w-64 rounded-xl border border-border bg-white p-3 shadow-xl">
+          <p className="text-sm text-[#0B184D]">
+            {permission === "denied" ? t("notifyBlocked") : failed ? t("notifyFailed") : on ? t("notifyReady") : t("notify")}
+          </p>
+          {permission === "denied" || on ? null : (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={enable}
+              className="mt-3 h-9 rounded-full bg-primary px-3 text-xs font-semibold text-white disabled:opacity-60"
+            >
+              {t("notifyOn")}
+            </button>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

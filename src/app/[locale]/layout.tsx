@@ -7,7 +7,6 @@ import { FacebookChatDock } from "@/components/chat/facebook-chat-dock";
 import { DockInset } from "@/components/layout/dock-inset";
 import { SaveProgress } from "@/components/layout/save-progress";
 import { ActivityTracker } from "@/components/activity/activity-tracker";
-import { MessageAlerts } from "@/components/pwa/message-alerts";
 import { YoutubeRouteStop } from "@/components/media/youtube-player";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -105,7 +104,6 @@ export default async function LocaleLayout({
           <YoutubeRouteStop />
           <SaveProgress />
           <SiteHeader />
-          <MessageAlerts />
           <PwaRegister>
             <main id="main" className="min-w-0 flex-1">
               {children}

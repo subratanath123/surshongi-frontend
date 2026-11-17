@@ -8,7 +8,6 @@ import {
   MessageCircle,
   Pencil,
   Plus,
-  Sparkles,
   Trash2,
   Upload,
   UserCheck,
@@ -322,7 +321,6 @@ export function HomeFeed() {
   const currentUser = useCurrentUser();
   const prefsBusy = usePrefsBusy();
 
-  const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [service, setService] = useState<ServiceId | null>(null);
   const [searchingVector, setSearchingVector] = useState(false);
@@ -349,6 +347,7 @@ export function HomeFeed() {
   const feedEndRef = useRef<HTMLDivElement>(null);
 
   const activeUserId = currentUser?.id ?? null;
+  const lookingOnly = !currentUser || accountKindOf(currentUser) === "member";
   const myFollows = useMemo(
     () => (activeUserId ? (db.follows[activeUserId] ?? []) : []),
     [db.follows, activeUserId],
@@ -437,7 +436,6 @@ export function HomeFeed() {
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedHasMore, filter, searchActive, feedCards.length]);
-  const searchRef = useRef<HTMLFormElement>(null);
   const resultsRef = useRef<HTMLElement>(null);
   const [askIn, setAskIn] = useState(false);
 
@@ -494,7 +492,6 @@ export function HomeFeed() {
       setAskIn(false);
       return;
     }
-    searchRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     const frame = requestAnimationFrame(() => setAskIn(true));
     return () => cancelAnimationFrame(frame);
   }, [searchActive, vectorQuery]);
@@ -522,7 +519,6 @@ export function HomeFeed() {
   function clearSearch() {
     searchSeq.current += 1;
     appliedUrlQuery.current = "";
-    setQuery("");
     setVectorHits(null);
     setVectorQuery("");
     setSearchingVector(false);
@@ -532,7 +528,6 @@ export function HomeFeed() {
   useEffect(() => {
     if (!urlQuery || appliedUrlQuery.current === urlQuery) return;
     appliedUrlQuery.current = urlQuery;
-    setQuery(urlQuery);
     void runSearch(urlQuery);
   }, [urlQuery, runSearch]);
 
@@ -543,7 +538,6 @@ export function HomeFeed() {
       setComposerOpen(false);
       searchSeq.current += 1;
       appliedUrlQuery.current = "";
-      setQuery("");
       setVectorHits(null);
       setVectorQuery("");
       setSearchingVector(false);
@@ -602,18 +596,6 @@ export function HomeFeed() {
     return () => window.removeEventListener("hashchange", scrollToHash);
   }, []);
 
-  async function handleSemanticSearch(event: FormEvent) {
-    event.preventDefault();
-    const q = query.trim();
-    if (!q) {
-      clearSearch();
-      return;
-    }
-    appliedUrlQuery.current = q;
-    router.replace({ pathname: "/", query: { q } });
-    await runSearch(q);
-  }
-
   async function handleCreatePost(event: FormEvent) {
     event.preventDefault();
     const authorId = currentUser?.id;
@@ -635,7 +617,7 @@ export function HomeFeed() {
     await mutateCommunity({
       action: "createPost",
       musicianId: authorId,
-      category: postCategory,
+      category: lookingOnly ? "collab" : postCategory,
       title: postTitle.trim(),
       text: postText.trim(),
       roleTag: postRole,
@@ -654,76 +636,23 @@ export function HomeFeed() {
 
   return (
     <div className="mx-auto min-w-0 max-w-6xl px-4 py-6 sm:px-5">
-      {/* Top Header */}
-      <div
-        className={`grid transition-[grid-template-rows,opacity,transform] duration-500 ease-out ${
-          service ? "hidden" : searchActive ? "grid-rows-[0fr] -translate-y-2 opacity-0" : "grid-rows-[1fr] translate-y-0 opacity-100"
-        }`}
-      >
-        <div className="overflow-hidden">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div className="max-w-2xl">
-              <h1 className="font-display text-3xl font-bold tracking-tight text-[#0B184D] sm:text-5xl">
-                {t("title")}
-              </h1>
-              <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">{t("lead")}</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <Button
-                type="button"
-                variant="secondary"
-                className="rounded-full"
-                onClick={() => (composerOpen ? setComposerOpen(false) : focusComposer())}
-              >
-                <Plus className="size-4" />
-                {t("createPostBtn")}
-              </Button>
-              <Button asChild className="rounded-full">
-                <Link href="/register">{currentUser ? t("editProfile") : t("register")}</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Semantic Search Bar */}
-      <form
-        ref={searchRef}
-        className={`${service ? "hidden" : "sticky top-16 z-30"} mt-6 flex scroll-mt-20 origin-top items-center gap-2 rounded-md border bg-white p-2 transition-all duration-500 ease-out ${
-          searchActive
-            ? "scale-[1.03] border-[#0D8BFF] shadow-[0_16px_40px_rgba(13,139,255,0.22)] ring-2 ring-[#0D8BFF]/30"
-            : "border-[#e4e5e7] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_8px_24px_rgba(0,0,0,0.06)]"
-        }`}
-        onSubmit={(e) => void handleSemanticSearch(e)}
-      >
-        <label className="sr-only" htmlFor="home-search">
-          {t("search")}
-        </label>
-        <Sparkles className="ml-3 size-4 shrink-0 text-primary" aria-hidden />
-        <input
-          id="home-search"
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            if (!event.target.value.trim()) clearSearch();
-          }}
-          placeholder={t("search")}
-          className="h-10 min-w-0 flex-1 rounded-full bg-transparent px-2 text-sm outline-none"
-        />
-        {query.trim() ? (
-          <button
+      {service ? null : (
+        <div className="flex justify-end">
+          <Button
             type="button"
-            onClick={clearSearch}
-            className="grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
-            aria-label="Clear search"
+            variant="secondary"
+            className="rounded-full"
+            onClick={() =>
+              composerOpen
+                ? setComposerOpen(false)
+                : focusComposer(lookingOnly ? "collab" : undefined)
+            }
           >
-            <X className="size-4" />
-          </button>
-        ) : null}
-        <Button type="submit" size="sm" disabled={searchingVector} className="rounded-full px-5">
-          {searchingVector ? "…" : t("ask")}
-        </Button>
-      </form>
+            <Plus className="size-4" />
+            {lookingOnly ? t("categories.collab") : t("createPostBtn")}
+          </Button>
+        </div>
+      )}
 
       <div
         ref={bandsRef}
@@ -1008,7 +937,7 @@ export function HomeFeed() {
                         </button>
                       </div>
 
-                      <div className="mt-4 grid grid-cols-3 gap-2" role="group" aria-label={t("composerTitle")}>
+                      {lookingOnly ? null : <div className="mt-4 grid grid-cols-3 gap-2" role="group" aria-label={t("composerTitle")}>
                         {categories.map((cat) => (
                           <button
                             key={cat}
@@ -1024,7 +953,7 @@ export function HomeFeed() {
                             {t(`categories.${cat}`)}
                           </button>
                         ))}
-                      </div>
+                      </div>}
 
                       <fieldset className="mt-4">
                         <legend className="text-xs font-semibold text-[#0B184D]">{t("fieldRole")}</legend>

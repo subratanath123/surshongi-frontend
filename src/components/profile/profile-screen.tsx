@@ -895,7 +895,7 @@ export function ProfileScreen({ musicianId }: { musicianId: string }) {
                         className="mt-3 space-y-2.5 rounded-lg border border-primary/40 bg-secondary p-3.5"
                       >
                         <div className="flex flex-wrap gap-1.5">
-                          {(["offering", "collab", "work"] as PostCategory[]).map((cat) => (
+                          {(accountKindOf(profile) === "member" ? (["collab"] as PostCategory[]) : (["offering", "collab", "work"] as PostCategory[])).map((cat) => (
                             <button
                               key={cat}
                               type="button"
